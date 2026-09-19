@@ -1,0 +1,308 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password_hash String
+  role          String    @default("PARENT") // TUTOR, PARENT
+  name          String
+  phone         String?
+  address       String?
+  status        String    @default("ACTIVE")
+  avatar_url    String?
+  pending_email String?
+  
+  // Relations
+  tutor_students Student[] @relation("TutorStudents")
+  parent_students Student[] @relation("ParentStudents")
+  activity_logs  ActivityLog[]
+  reports        ReportHistory[]
+  
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+
+
+model Student {
+  id            String    @id @default(uuid())
+  student_code  String    @unique
+  name          String
+  dob           DateTime?
+  gender        String?
+  school        String?
+  grade         String?
+  subject       String?
+  price_per_session Float @default(0)
+  start_date    DateTime?
+  status        String    @default("ACTIVE")
+  
+  // Goals
+  goals         Goal[]
+  
+  // Relations
+  tutor_id      String
+  tutor         User      @relation("TutorStudents", fields: [tutor_id], references: [id])
+  parent_id     String
+  parent        User      @relation("ParentStudents", fields: [parent_id], references: [id])
+  
+  schedules     Schedule[]
+  tuition_cycles TuitionCycle[]
+  homeworks     Homework[]
+  documents     Document[]
+  reports       ReportHistory[]
+  student_subjects StudentSubject[]
+  activity_logs ActivityLog[]
+
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model StudentSubject {
+  id                String  @id @default(uuid())
+  student_id        String
+  student           Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  subject           String
+  price_per_session Float
+
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}
+
+model Goal {
+  id            String    @id @default(uuid())
+  student_id    String
+  student       Student   @relation(fields: [student_id], references: [id])
+  
+  title         String
+  description   String?
+  goal_type     String    // SHORT_TERM, LONG_TERM, SUBJECT
+  start_date    DateTime?
+  end_date      DateTime?
+  progress      Int       @default(0)
+  status        String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, PAUSED
+  
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model Schedule {
+  id            String    @id @default(uuid())
+  student_id    String
+  student       Student   @relation(fields: [student_id], references: [id])
+  
+  subject       String
+  date          DateTime
+  start_time    String
+  end_time      String
+  format        String    // ONLINE, OFFLINE
+  location      String?
+  notes         String?
+  
+  status        String    @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED, MAKE_UP
+  
+  // 1 to 1 relation with Session
+  session       Session?
+
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model Session {
+  id            String    @id @default(uuid())
+  schedule_id   String    @unique
+  schedule      Schedule  @relation(fields: [schedule_id], references: [id])
+  
+  attendance    String    // PRESENT, ABSENT, EXCUSED, MAKE_UP
+  content       String?
+  
+  // Relations
+  scores        Score[]
+  comments      Comment[]
+
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model Score {
+  id            String    @id @default(uuid())
+  session_id    String
+  session       Session   @relation(fields: [session_id], references: [id])
+  
+  score_type    String    // DAILY, HOMEWORK, QUIZ, MIDTERM, FINAL
+  value         Float
+  weight        Float     @default(1.0)
+  notes         String?
+  
+  histories     ScoreHistory[]
+
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model ScoreHistory {
+  id            String    @id @default(uuid())
+  score_id      String
+  score         Score     @relation(fields: [score_id], references: [id])
+  
+  old_value     Float
+  new_value     Float
+  reason        String?
+  changed_by    String
+  
+  created_at    DateTime  @default(now())
+}
+
+model Comment {
+  id            String    @id @default(uuid())
+  session_id    String
+  session       Session   @relation(fields: [session_id], references: [id])
+  
+  content       String
+  understanding_level String?
+  attitude      String?
+  strengths     String?
+  weaknesses    String?
+  practice_needs String?
+  homework_assigned String?
+  
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model Homework {
+  id            String    @id @default(uuid())
+  student_id    String
+  student       Student   @relation(fields: [student_id], references: [id])
+  
+  title         String
+  subject       String?   // To track which subject this homework belongs to
+  description   String?
+  due_date      DateTime?
+  status        String    @default("PENDING") // PENDING, SUBMITTED, GRADED, OVERDUE
+  
+  attachments   Document[]
+  
+  // Submissions
+  submission_url String?
+  submission_text String?
+  submission_date DateTime?
+  
+  // Grading
+  score         Float?
+  feedback      String?
+  graded_date   DateTime?
+
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model Document {
+  id            String    @id @default(uuid())
+  title         String
+  type          String    // PDF, DOCX, LINK, etc.
+  url           String
+  
+  student_id    String?
+  student       Student?  @relation(fields: [student_id], references: [id])
+  
+  homework_id   String?
+  homework      Homework? @relation(fields: [homework_id], references: [id])
+  
+  created_at    DateTime  @default(now())
+}
+
+model TuitionCycle {
+  id            String    @id @default(uuid())
+  student_id    String
+  student       Student   @relation(fields: [student_id], references: [id])
+  
+  name          String    // e.g. "Cycle 01"
+  subject       String?   // Allows creating cycles specific to a subject
+  start_date    DateTime
+  end_date      DateTime?
+  
+  total_sessions Int      @default(10)
+  completed_sessions Int  @default(0)
+  
+  price_per_session Float
+  total_amount  Float
+  paid_amount   Float     @default(0)
+  
+  status        String    @default("UNPAID") // UNPAID, PARTIAL, PAID, OVERDUE, CANCELLED
+  due_date      DateTime?
+  
+  payments      Payment[]
+
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+}
+
+model Payment {
+  id            String    @id @default(uuid())
+  cycle_id      String
+  cycle         TuitionCycle @relation(fields: [cycle_id], references: [id])
+  
+  amount        Float
+  method        String
+  status        String
+  notes         String?
+  
+  created_at    DateTime  @default(now())
+}
+
+model ReportHistory {
+  id            String    @id @default(uuid())
+  student_id    String
+  student       Student   @relation(fields: [student_id], references: [id])
+  
+  created_by    String
+  creator       User      @relation(fields: [created_by], references: [id])
+  
+  report_type   String    // SESSION, WEEKLY, MONTHLY, TERM, CUSTOM
+  name          String
+  start_date    DateTime?
+  end_date      DateTime?
+  
+  email_sent    Boolean   @default(false)
+  file_url      String?
+  
+  created_at    DateTime  @default(now())
+}
+
+model ActivityLog {
+  id            String    @id @default(uuid())
+  user_id       String
+  user          User      @relation(fields: [user_id], references: [id])
+  
+  student_id    String?
+  student       Student?  @relation(fields: [student_id], references: [id])
+  
+  action        String
+  target_type   String
+  target_id     String?
+  details       String?   // JSON string of changes
+  
+  created_at    DateTime  @default(now())
+}
+
+model Settings {
+  id            String    @id @default(uuid())
+  key           String    @unique
+  value         String    // JSON string
+  updated_at    DateTime  @updatedAt
+}
+
+model CommentTemplate {
+  id            String    @id @default(uuid())
+  title         String
+  content       String
+  created_at    DateTime  @default(now())
+}
