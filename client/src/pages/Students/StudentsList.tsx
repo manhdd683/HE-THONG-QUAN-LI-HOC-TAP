@@ -34,6 +34,8 @@ const StudentsList: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const { user } = useAuth();
 
   const fetchStudents = async () => {
@@ -59,14 +61,19 @@ const StudentsList: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa học sinh này không?')) {
-      try {
-        await api.delete(`/students/${id}`);
-        fetchStudents();
-      } catch (error: any) {
-        alert(error.response?.data?.message || 'Xóa thất bại');
-      }
+  const confirmDelete = async () => {
+    if (!studentToDelete) return;
+    try {
+      await api.delete(`/students/${studentToDelete.id}`);
+      setToastMsg({ type: 'success', text: 'Đã xóa học sinh thành công!' });
+      setStudentToDelete(null);
+      fetchStudents();
+      setTimeout(() => setToastMsg(null), 3000);
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      setToastMsg({ type: 'error', text: 'Không thể xóa học sinh: ' + (error.response?.data?.error || error.response?.data?.message || error.message) });
+      setStudentToDelete(null);
+      setTimeout(() => setToastMsg(null), 5000);
     }
   };
 
@@ -137,7 +144,7 @@ const StudentsList: React.FC = () => {
                         <button className="btn-icon" onClick={() => handleEdit(student)} title="Chỉnh sửa">
                           <Edit size={18} />
                         </button>
-                        <button className="btn-icon text-danger" title="Khóa/Xóa" onClick={() => handleDelete(student.id)}>
+                        <button className="btn-icon danger" title="Khóa/Xóa" onClick={() => setStudentToDelete(student)}>
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -163,6 +170,40 @@ const StudentsList: React.FC = () => {
           student={selectedStudent} 
           onClose={() => setIsScoreModalOpen(false)} 
         />
+      )}
+
+      {/* CUSTOM CONFIRM MODAL */}
+      {studentToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2>Xác nhận xóa</h2>
+              <button className="btn-icon" onClick={() => setStudentToDelete(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>Bạn có chắc chắn muốn xóa học sinh <strong>{studentToDelete.name}</strong> không? Các dữ liệu liên quan sẽ bị ẩn.</p>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+              <button className="btn-secondary" onClick={() => setStudentToDelete(null)}>Hủy</button>
+              <button className="btn-primary" style={{ backgroundColor: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={confirmDelete}>Xóa học sinh</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST MESSAGE */}
+      {toastMsg && (
+        <div style={{
+          position: 'fixed', bottom: '20px', right: '20px', 
+          backgroundColor: toastMsg.type === 'success' ? 'var(--success)' : 'var(--danger)',
+          color: '#fff', padding: '12px 24px', borderRadius: '8px', 
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 9999,
+          fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px',
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          {toastMsg.type === 'success' ? <span style={{ fontSize: '18px' }}>✓</span> : null}
+          {toastMsg.text}
+        </div>
       )}
     </div>
   );
