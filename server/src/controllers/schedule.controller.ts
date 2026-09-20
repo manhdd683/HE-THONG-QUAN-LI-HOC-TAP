@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
+import { sendSessionFeedbackNotification } from '../utils/mailer';
 
 export const getSchedules = async (req: Request, res: Response) => {
   try {
@@ -274,6 +275,30 @@ export const markAttendance = async (req: Request, res: Response) => {
             })
           }
         });
+      }
+    }
+
+    // Send email notification if there is any text feedback
+    if (content || strengths || weaknesses || attitude || understanding_level) {
+      const studentWithParent = await prisma.student.findUnique({
+        where: { id: schedule.student_id },
+        include: { parent: true }
+      });
+
+      if (studentWithParent?.parent?.email) {
+        let feedbackText = '';
+        if (content) feedbackText += `- Nội dung bài học: ${content}\n`;
+        if (understanding_level) feedbackText += `- Mức độ hiểu bài: ${understanding_level}\n`;
+        if (attitude) feedbackText += `- Thái độ học tập: ${attitude}\n`;
+        if (strengths) feedbackText += `- Điểm mạnh: ${strengths}\n`;
+        if (weaknesses) feedbackText += `- Cần cải thiện: ${weaknesses}\n`;
+
+        sendSessionFeedbackNotification(
+          studentWithParent.parent.email,
+          studentWithParent.name,
+          schedule.date,
+          feedbackText
+        ).catch(console.error);
       }
     }
 

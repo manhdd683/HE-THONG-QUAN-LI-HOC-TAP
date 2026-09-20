@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
+import { sendHomeworkNotification } from '../utils/mailer';
 
 export const getHomeworks = async (req: Request, res: Response) => {
   try {
@@ -74,6 +75,23 @@ export const createHomework = async (req: Request, res: Response) => {
         attachments: true
       }
     });
+
+    // Send email notification to parent
+    const studentWithParent = await prisma.student.findUnique({
+      where: { id: student_id },
+      include: { parent: true }
+    });
+
+    if (studentWithParent?.parent?.email) {
+      // Don't await email so it doesn't block response
+      sendHomeworkNotification(
+        studentWithParent.parent.email,
+        studentWithParent.name,
+        homework.title,
+        homework.due_date
+      ).catch(console.error);
+    }
+
     res.status(201).json(homework);
   } catch (error) {
     console.error(error);

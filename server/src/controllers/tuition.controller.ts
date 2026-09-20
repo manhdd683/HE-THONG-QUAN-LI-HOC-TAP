@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../prisma';
+import { sendTuitionNotification } from '../utils/mailer';
 
 export const getTuitionCycles = async (req: Request, res: Response) => {
   try {
@@ -122,10 +123,21 @@ export const recordPayment = async (req: Request, res: Response) => {
           status: newStatus
         },
         include: {
-          student: true
+          student: {
+            include: { parent: true }
+          }
         }
       })
     ]);
+
+    // Send email if status became PAID
+    if (newStatus === 'PAID' && updatedCycle.student?.parent?.email) {
+      sendTuitionNotification(
+        updatedCycle.student.parent.email,
+        updatedCycle.student.name,
+        updatedCycle.name
+      ).catch(console.error);
+    }
 
     res.json(updatedCycle);
   } catch (error) {
