@@ -29,6 +29,8 @@ const SchedulesList: React.FC = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [scheduleToEdit, setScheduleToEdit] = useState<Schedule | null>(null);
+  const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
+  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [activeTab, setActiveTab] = useState<'SCHEDULED' | 'COMPLETED'>('SCHEDULED');
@@ -55,6 +57,22 @@ const SchedulesList: React.FC = () => {
   const scheduledList = schedules.filter(s => s.status === 'SCHEDULED');
   const completedList = schedules.filter(s => s.status !== 'SCHEDULED');
   const displayList = activeTab === 'SCHEDULED' ? scheduledList : completedList;
+
+  const confirmDelete = async () => {
+    if (!scheduleToDelete) return;
+    try {
+      await api.delete(`/schedules/${scheduleToDelete.id}`);
+      setToastMsg({ type: 'success', text: 'Đã xóa lịch học thành công!' });
+      setScheduleToDelete(null);
+      fetchSchedules();
+      setTimeout(() => setToastMsg(null), 3000);
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      setToastMsg({ type: 'error', text: 'Không thể xóa lịch học: ' + (error.response?.data?.error || error.message) });
+      setScheduleToDelete(null);
+      setTimeout(() => setToastMsg(null), 5000);
+    }
+  };
 
   return (
     <div className="page-container">
@@ -123,20 +141,7 @@ const SchedulesList: React.FC = () => {
                     <button
                       className="btn-icon danger"
                       title="Xóa lịch"
-                      onClick={async () => {
-                        if (window.confirm(activeTab === 'COMPLETED'
-                          ? 'Bạn có chắc chắn muốn xóa lịch đã điểm danh này? Toàn bộ dữ liệu điểm danh sẽ bị xóa.'
-                          : 'Bạn có chắc chắn muốn xóa lịch này?')) {
-                          try {
-                            await api.delete(`/schedules/${schedule.id}`);
-                            alert('Đã xóa lịch học thành công!');
-                            fetchSchedules();
-                          } catch (error: any) {
-                            console.error('Delete error:', error);
-                            alert('Không thể xóa lịch học: ' + (error.response?.data?.error || error.message));
-                          }
-                        }
-                      }}
+                      onClick={() => setScheduleToDelete(schedule)}
                     >
                       <Trash2 size={15} />
                     </button>
@@ -193,20 +198,77 @@ const SchedulesList: React.FC = () => {
         </div>
       )}
 
+      {/* FORMS */}
       {isFormOpen && (
         <ScheduleForm
-          onClose={() => setIsFormOpen(false)}
-          onSuccess={fetchSchedules}
-          initialData={scheduleToEdit}
+          schedule={scheduleToEdit || undefined}
+          onClose={() => {
+            setIsFormOpen(false);
+            setScheduleToEdit(null);
+          }}
+          onSuccess={() => {
+            setIsFormOpen(false);
+            setScheduleToEdit(null);
+            fetchSchedules();
+            setToastMsg({ type: 'success', text: scheduleToEdit ? 'Đã cập nhật lịch học!' : 'Đã tạo lịch học thành công!' });
+            setTimeout(() => setToastMsg(null), 3000);
+          }}
         />
       )}
 
       {isAttendanceOpen && selectedSchedule && (
         <AttendanceForm
           schedule={selectedSchedule}
-          onClose={() => setIsAttendanceOpen(false)}
-          onSuccess={fetchSchedules}
+          onClose={() => {
+            setIsAttendanceOpen(false);
+            setSelectedSchedule(null);
+          }}
+          onSuccess={() => {
+            setIsAttendanceOpen(false);
+            setSelectedSchedule(null);
+            fetchSchedules();
+            setToastMsg({ type: 'success', text: 'Đã điểm danh thành công!' });
+            setTimeout(() => setToastMsg(null), 3000);
+          }}
         />
+      )}
+
+      {/* CUSTOM CONFIRM MODAL */}
+      {scheduleToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2>Xác nhận xóa</h2>
+              <button className="btn-icon" onClick={() => setScheduleToDelete(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>
+                {scheduleToDelete.status !== 'SCHEDULED' 
+                  ? 'Bạn có chắc chắn muốn xóa lịch đã điểm danh này? Toàn bộ dữ liệu điểm danh sẽ bị xóa vĩnh viễn.'
+                  : 'Bạn có chắc chắn muốn xóa lịch học này không?'}
+              </p>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+              <button className="btn-secondary" onClick={() => setScheduleToDelete(null)}>Hủy</button>
+              <button className="btn-primary" style={{ backgroundColor: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={confirmDelete}>Xóa lịch</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST MESSAGE */}
+      {toastMsg && (
+        <div style={{
+          position: 'fixed', bottom: '20px', right: '20px', 
+          backgroundColor: toastMsg.type === 'success' ? 'var(--success)' : 'var(--danger)',
+          color: '#fff', padding: '12px 24px', borderRadius: '8px', 
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 9999,
+          fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px',
+          animation: 'slideIn 0.3s ease-out'
+        }}>
+          {toastMsg.type === 'success' ? <CheckCircle size={18} /> : null}
+          {toastMsg.text}
+        </div>
       )}
     </div>
   );
