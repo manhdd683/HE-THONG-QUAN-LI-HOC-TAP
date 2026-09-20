@@ -137,6 +137,14 @@ export const deleteSchedule = async (req: Request, res: Response) => {
     const session = await prisma.session.findUnique({ where: { schedule_id: id } });
     if (session) {
       await prisma.comment.deleteMany({ where: { session_id: session.id } });
+      
+      // Delete ScoreHistory for all scores belonging to this session
+      const scores = await prisma.score.findMany({ where: { session_id: session.id } });
+      if (scores.length > 0) {
+        const scoreIds = scores.map(s => s.id);
+        await prisma.scoreHistory.deleteMany({ where: { score_id: { in: scoreIds } } });
+      }
+      
       await prisma.score.deleteMany({ where: { session_id: session.id } });
       await prisma.session.delete({ where: { schedule_id: id } });
     }

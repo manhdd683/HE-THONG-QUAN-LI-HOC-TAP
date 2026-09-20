@@ -127,8 +127,13 @@ const SchedulesList: React.FC = () => {
                         if (window.confirm(activeTab === 'COMPLETED'
                           ? 'Bạn có chắc chắn muốn xóa lịch đã điểm danh này? Toàn bộ dữ liệu điểm danh sẽ bị xóa.'
                           : 'Bạn có chắc chắn muốn xóa lịch này?')) {
-                          await api.delete(`/schedules/${schedule.id}`);
-                          fetchSchedules();
+                          try {
+                            await api.delete(`/schedules/${schedule.id}`);
+                            fetchSchedules();
+                          } catch (error: any) {
+                            console.error('Delete error:', error);
+                            alert('Không thể xóa lịch học: ' + (error.response?.data?.error || error.message));
+                          }
                         }
                       }}
                     >
