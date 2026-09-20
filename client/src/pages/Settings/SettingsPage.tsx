@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 
 const SettingsPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -25,9 +25,19 @@ const SettingsPage: React.FC = () => {
     });
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Đã lưu cấu hình thành công!');
+    try {
+      if (activeTab === 'profile') {
+        const res = await api.put('/auth/profile', { name: formData.name, phone: formData.phone });
+        updateUser(res.data.user);
+        alert('Đã cập nhật thông tin thành công!');
+      } else {
+        alert('Đã lưu cấu hình thành công!');
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Lỗi khi cập nhật thông tin');
+    }
   };
 
   const handleEmailRequest = async (e: React.FormEvent) => {

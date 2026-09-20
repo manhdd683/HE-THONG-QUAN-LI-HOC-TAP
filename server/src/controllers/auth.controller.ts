@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../prisma';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 // Secret keys for JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey';
@@ -218,6 +219,36 @@ export const rejectEmailChange = async (req: Request, res: Response) => {
     });
 
     res.json({ message: 'Đã từ chối yêu cầu đổi email' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Không có quyền' });
+    }
+    const { name, phone } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        name,
+        phone
+      }
+    });
+
+    res.json({
+      message: 'Cập nhật thành công',
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+      }
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Lỗi server' });
