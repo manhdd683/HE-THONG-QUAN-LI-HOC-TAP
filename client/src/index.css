@@ -309,7 +309,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ============================================================
    5. DASHBOARD & SPECIFIC CARDS
    ============================================================ */
-.dashboard-grid, .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 32px; }
 
 .stat-card {
   padding: 24px; display: flex; align-items: center; gap: 20px;
@@ -409,11 +410,34 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .text-danger { color: var(--danger); }
 .text-success { color: var(--success); }
 .text-right { text-align: right; }
-.dash-section { margin-top: 40px; }
-.dash-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.dash-section-title { font-size: 20px; }
 
-/* Filters & Controls */
+/* Dashboard Sections */
+.dash-section { display: flex; flex-direction: column; gap: 16px; height: 100%; }
+.dash-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.dash-section-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.icon-wrapper { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; }
+.dash-badge { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 99px; }
+.dash-badge.orange { background: var(--warning-bg); color: var(--warning); }
+.dash-badge.green { background: var(--success-bg); color: var(--success); }
+.dash-badge.red { background: var(--danger-bg); color: var(--danger); }
+
+/* Dashboard Lists */
+.dash-list { display: flex; flex-direction: column; gap: 12px; }
+.dash-item { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.dash-item:last-child { border-bottom: none; }
+.dash-item-avatar { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+.dash-item-content { flex: 1; min-width: 0; }
+.dash-item-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dash-item-sub { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; }
+.dash-item-right { text-align: right; flex-shrink: 0; }
+.dash-item-time { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.dash-item-meta { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.dash-item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.status-dot.today { background: var(--success); }
+.status-dot.upcoming { background: var(--info); }
+.dash-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px 20px; color: var(--text-muted); gap: 12px; background: #f8fafc; border-radius: var(--radius-md); border: 1px dashed var(--border); flex: 1; }
+.dash-empty strong { color: var(--text-main); }
 .list-controls, .report-controls {
   display: flex; gap: 16px; margin-bottom: 24px; align-items: center; flex-wrap: wrap;
 }
