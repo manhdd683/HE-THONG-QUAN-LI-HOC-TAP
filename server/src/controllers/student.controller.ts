@@ -64,13 +64,13 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
 
     if (parentMode === 'create') {
       if (!parent_email || !parent_name) {
-        return res.status(400).json({ error: 'Vui lòng nhập họ tên và email của phụ huynh' });
+        return res.status(400).json({ message: 'Vui lòng nhập họ tên và email của phụ huynh' });
       }
       
       // Check if email already exists
       const existingUser = await prisma.user.findUnique({ where: { email: parent_email } });
       if (existingUser) {
-        return res.status(400).json({ error: 'Email phụ huynh đã tồn tại trong hệ thống. Vui lòng chọn phụ huynh có sẵn.' });
+        return res.status(400).json({ message: 'Email phụ huynh đã tồn tại trong hệ thống. Vui lòng chọn phụ huynh có sẵn.' });
       }
 
       const bcrypt = require('bcryptjs');
@@ -89,7 +89,7 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
     }
 
     if (!finalParentId) {
-      return res.status(400).json({ error: 'Cần chọn hoặc tạo mới phụ huynh' });
+      return res.status(400).json({ message: 'Cần chọn hoặc tạo mới phụ huynh' });
     }
 
     // Auto-generate student_code (e.g., HS001, HS002)
@@ -140,7 +140,7 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
     if (error.code === 'P2002') {
       return res.status(400).json({ message: 'Mã học sinh đã tồn tại' });
     }
-    res.status(500).json({ message: 'Lỗi server' });
+    res.status(500).json({ message: 'Lỗi server: ' + (error.message || 'Unknown error') });
   }
 };
 

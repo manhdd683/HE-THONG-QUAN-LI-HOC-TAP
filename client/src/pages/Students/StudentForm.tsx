@@ -125,7 +125,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose, onSuccess }
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Đã có lỗi xảy ra');
+      setError(err.response?.data?.message || err.response?.data?.error || 'Đã có lỗi xảy ra');
     } finally {
       setIsLoading(false);
     }

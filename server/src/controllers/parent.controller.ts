@@ -189,3 +189,20 @@ export const approveEmailChange = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Lỗi server' });
   }
 };
+
+export const deleteParent = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    
+    // Soft delete by setting status to ARCHIVED
+    await prisma.user.update({
+      where: { id, role: 'PARENT' },
+      data: { status: 'ARCHIVED' }
+    });
+
+    res.json({ message: 'Đã xóa phụ huynh (soft delete)' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
