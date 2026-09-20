@@ -60,6 +60,7 @@ model Student {
   reports       ReportHistory[]
   student_subjects StudentSubject[]
   activity_logs ActivityLog[]
+  achievements  Achievement[]
 
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
@@ -305,4 +306,17 @@ model CommentTemplate {
   title         String
   content       String
   created_at    DateTime  @default(now())
+}
+
+model Achievement {
+  id              String   @id @default(uuid())
+  student_id      String
+  student         Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  
+  title           String
+  description     String?
+  metrics         String?  // JSON string e.g. {"attendance": 90, "homework": 92, "score": 8.5}
+  achieved_date   DateTime @default(now())
+  
+  created_at      DateTime @default(now())
 }

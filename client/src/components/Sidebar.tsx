@@ -11,7 +11,8 @@ import {
   LogOut,
   FileText,
   BarChart3,
-  BookMarked
+  BookMarked,
+  Award
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,6 +28,7 @@ const Sidebar = () => {
     { path: '/tutor/homework', icon: <BookOpen size={18} />, label: 'Bài tập' },
     { path: '/tutor/scores', icon: <BarChart3 size={18} />, label: 'Bảng điểm' },
     { path: '/tutor/tuition', icon: <CreditCard size={18} />, label: 'Học phí' },
+    { path: '/tutor/achievements', icon: <Award size={18} />, label: 'Thành tích' },
     { path: '/tutor/reports', icon: <FileText size={18} />, label: 'Báo cáo' },
     { path: '/tutor/settings', icon: <Settings size={18} />, label: 'Cài đặt' },
   ];
@@ -37,6 +39,7 @@ const Sidebar = () => {
     { path: '/parent/homework', icon: <BookOpen size={18} />, label: 'Bài tập' },
     { path: '/parent/scores', icon: <BarChart3 size={18} />, label: 'Bảng điểm' },
     { path: '/parent/tuition', icon: <CreditCard size={18} />, label: 'Học phí' },
+    { path: '/parent/achievements', icon: <Award size={18} />, label: 'Thành tích' },
     { path: '/parent/reports', icon: <BookMarked size={18} />, label: 'Báo cáo' },
     { path: '/parent/settings', icon: <Settings size={18} />, label: 'Cài đặt' },
   ];

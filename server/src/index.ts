@@ -11,6 +11,7 @@ import homeworkRoutes from './routes/homework.routes';
 import tuitionRoutes from './routes/tuition.routes';
 import reportRoutes from './routes/report.routes';
 import uploadRoutes from './routes/upload.routes';
+import achievementRoutes from './routes/achievement.routes';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use('/api/homework', homeworkRoutes);
 app.use('/api/tuition', tuitionRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/achievements', achievementRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });

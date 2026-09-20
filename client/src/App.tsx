@@ -15,6 +15,8 @@ import TuitionList from './pages/Tuition/TuitionList';
 import ReportsPage from './pages/Reports/ReportsPage';
 import ScoresPage from './pages/Scores/ScoresPage';
 import SubjectScoreDetails from './pages/Scores/SubjectScoreDetails';
+import ParentAchievements from './pages/Achievements/ParentAchievements';
+import AchievementManagement from './pages/Achievements/AchievementManagement';
 import SettingsPage from './pages/Settings/SettingsPage';
 import ParentSettings from './pages/Settings/ParentSettings';
 
@@ -36,6 +38,7 @@ function App() {
               <Route path="/tutor/homework" element={<HomeworkList />} />
               <Route path="/tutor/scores" element={<ScoresPage />} />
               <Route path="/tutor/tuition" element={<TuitionList />} />
+              <Route path="/tutor/achievements" element={<AchievementManagement />} />
               <Route path="/tutor/reports" element={<ReportsPage />} />
               <Route path="/tutor/settings" element={<SettingsPage />} />
               <Route path="/tutor/*" element={<Navigate to="/tutor/dashboard" replace />} />
@@ -51,6 +54,7 @@ function App() {
               <Route path="/parent/scores" element={<ScoresPage />} />
               <Route path="/parent/scores/:studentId/:subject" element={<SubjectScoreDetails />} />
               <Route path="/parent/tuition" element={<TuitionList />} />
+              <Route path="/parent/achievements" element={<ParentAchievements />} />
               <Route path="/parent/reports" element={<ReportsPage />} />
               <Route path="/parent/settings" element={<ParentSettings />} />
               <Route path="/parent/*" element={<Navigate to="/parent/dashboard" replace />} />
