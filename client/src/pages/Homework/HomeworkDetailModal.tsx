@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Book, Calendar, CheckCircle, MessageCircle, FileText, Award } from 'lucide-react';
+import { X, Book, Calendar, CheckCircle, MessageCircle, FileText, Award, Download, Paperclip } from 'lucide-react';
 import type { Homework } from './HomeworkList';
 
 interface HomeworkDetailModalProps {
@@ -50,6 +50,49 @@ const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({ homework, onC
                 </p>
               </div>
             </div>
+
+            {/* Attachments */}
+            {homework.attachments && homework.attachments.length > 0 && (
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <Paperclip size={20} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+                <div style={{ width: '100%' }}>
+                  <strong style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Tệp đính kèm:</strong>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {homework.attachments.map(att => {
+                      const isImage = att.type.startsWith('image/');
+                      const isVideo = att.type.startsWith('video/');
+                      
+                      return (
+                        <div key={att.id} style={{ padding: '1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                          {isImage ? (
+                            <div>
+                              <img src={att.url} alt={att.title} style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '4px', objectFit: 'contain' }} />
+                              <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
+                                <a href={att.url} target="_blank" rel="noreferrer" className="btn-secondary" style={{ fontSize: '0.8rem', padding: '4px 8px', textDecoration: 'none' }}><Download size={12} style={{ marginRight: '4px', display: 'inline' }} /> Tải ảnh xuống</a>
+                              </div>
+                            </div>
+                          ) : isVideo ? (
+                            <div>
+                              <video src={att.url} controls style={{ width: '100%', maxHeight: '400px', borderRadius: '4px' }} />
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FileText size={16} color="var(--primary)" />
+                                <span>{att.title}</span>
+                              </div>
+                              <a href={att.url} target="_blank" rel="noreferrer" className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Download size={14} /> Tải xuống
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: '1rem' }}>
               <Calendar size={20} color="var(--text-muted)" style={{ flexShrink: 0 }} />

@@ -21,6 +21,7 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({ onClose, onSuccess }) => {
     due_date: ''
   });
   const [students, setStudents] = useState<Student[]>([]);
+  const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,7 +46,31 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({ onClose, onSuccess }) => {
     setIsLoading(true);
 
     try {
-      await api.post('/homework', formData);
+      let attachments: any[] = [];
+      
+      // If there's a file, upload it first
+      if (file) {
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        
+        const uploadRes = await api.post('/upload', formDataUpload, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        const fileUrl = uploadRes.data.url;
+        attachments = [{
+          title: file.name,
+          type: file.type,
+          url: fileUrl
+        }];
+      }
+
+      await api.post('/homework', {
+        ...formData,
+        attachments
+      });
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -134,6 +159,17 @@ const HomeworkForm: React.FC<HomeworkFormProps> = ({ onClose, onSuccess }) => {
               value={formData.due_date}
               onChange={handleChange}
             />
+          </div>
+
+          <div className="form-group">
+            <label>Đính kèm tệp tin (Tùy chọn)</label>
+            <input
+              type="file"
+              className="form-input"
+              onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+              style={{ paddingTop: '8px' }}
+            />
+            <small style={{ color: 'var(--text-muted)' }}>Hỗ trợ ảnh, video hoặc tài liệu (Tối đa 50MB)</small>
           </div>
 
           <div className="form-actions" style={{ marginTop: '24px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>

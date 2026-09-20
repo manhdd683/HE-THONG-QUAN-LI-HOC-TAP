@@ -20,6 +20,12 @@ export interface Homework {
     id: string;
     name: string;
   };
+  attachments?: {
+    id: string;
+    title: string;
+    type: string;
+    url: string;
+  }[];
 }
 
 const HomeworkList: React.FC = () => {

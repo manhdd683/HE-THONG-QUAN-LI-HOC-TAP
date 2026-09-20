@@ -14,7 +14,8 @@ export const getHomeworks = async (req: Request, res: Response) => {
           }
         },
         include: {
-          student: true
+          student: true,
+          attachments: true
         },
         orderBy: { due_date: 'asc' }
       });
@@ -26,7 +27,8 @@ export const getHomeworks = async (req: Request, res: Response) => {
           }
         },
         include: {
-          student: true
+          student: true,
+          attachments: true
         },
         orderBy: { due_date: 'asc' }
       });
@@ -41,7 +43,7 @@ export const getHomeworks = async (req: Request, res: Response) => {
 
 export const createHomework = async (req: Request, res: Response) => {
   try {
-    const { student_id, title, subject, description, due_date } = req.body;
+    const { student_id, title, subject, description, due_date, attachments } = req.body;
     
     // Check if student belongs to tutor
     const user = (req as any).user;
@@ -58,10 +60,18 @@ export const createHomework = async (req: Request, res: Response) => {
         title,
         subject,
         description,
-        due_date: due_date ? new Date(due_date) : null
+        due_date: due_date ? new Date(due_date) : null,
+        attachments: attachments && attachments.length > 0 ? {
+          create: attachments.map((att: any) => ({
+            title: att.title,
+            type: att.type,
+            url: att.url
+          }))
+        } : undefined
       },
       include: {
-        student: true
+        student: true,
+        attachments: true
       }
     });
     res.status(201).json(homework);
