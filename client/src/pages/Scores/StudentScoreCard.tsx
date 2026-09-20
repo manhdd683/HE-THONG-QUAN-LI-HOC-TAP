@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Award, FileText } from 'lucide-react';
+import { Award, FileText, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import type { Student } from '../Students/StudentsList';
 
@@ -12,9 +13,9 @@ interface ScoreRecord {
 }
 
 const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
+  const navigate = useNavigate();
   const [scores, setScores] = useState<ScoreRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [expandedSubjects, setExpandedSubjects] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchScores = async () => {
@@ -22,12 +23,6 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
         const res = await api.get(`/students/${student.id}/scores`);
         const homeworks = res.data.homeworks || [];
         setScores(homeworks);
-        
-        // Expand the first subject by default
-        const subjects = Array.from(new Set(homeworks.map((h: any) => h.subject || 'Chung')));
-        if (subjects.length > 0) {
-          setExpandedSubjects([subjects[0] as string]);
-        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -56,78 +51,92 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
       ) : (
         <>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {Object.keys(groupedScores).map(subject => {
-            const isExpanded = expandedSubjects.includes(subject);
-            const toggleExpand = () => {
-              setExpandedSubjects(prev => 
-                isExpanded ? prev.filter(s => s !== subject) : [...prev, subject]
-              );
-            };
-
-            const avgScore = (groupedScores[subject].reduce((acc, curr) => acc + curr.score, 0) / groupedScores[subject].length).toFixed(1);
-
-            return (
-              <div key={subject} style={{ border: '1px solid var(--glass-border)', borderRadius: '12px', background: 'var(--glass-bg)', overflow: 'hidden' }}>
-                <div 
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer', background: isExpanded ? 'rgba(255, 255, 255, 0.4)' : 'transparent' }}
-                  onClick={toggleExpand}
-                >
-                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem' }}>
-                    <Award size={18} color="var(--primary)" />
-                    Môn học: <span style={{ color: 'var(--primary)' }}>{subject}</span>
-                  </h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          {Object.keys(groupedScores).length === 1 ? (
+            // ONE SUBJECT: Render inline
+            Object.keys(groupedScores).map(subject => {
+              const avgScore = (groupedScores[subject].reduce((acc, curr) => acc + curr.score, 0) / groupedScores[subject].length).toFixed(1);
+              return (
+                <div key={subject} style={{ padding: '1rem', border: '1px solid var(--glass-border)', borderRadius: '12px', background: 'var(--glass-bg)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Award size={20} color="var(--primary)" />
+                      Môn học: <span style={{ color: 'var(--primary)' }}>{subject}</span>
+                    </h3>
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Điểm TB</span>
-                      <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                      <span style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Điểm trung bình</span>
+                      <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--primary)' }}>
                         {avgScore} / 10
                       </p>
                     </div>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                      {isExpanded ? '▲ Thu gọn' : '▼ Chi tiết'}
-                    </span>
+                  </div>
+                  
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="data-table" style={{ width: '100%' }}>
+                      <thead>
+                        <tr>
+                          <th>Bài tập</th>
+                          <th>Ngày chấm</th>
+                          <th>Điểm số</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {groupedScores[subject].map(s => (
+                          <tr key={s.id}>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FileText size={16} color="var(--text-muted)" />
+                                <span>{s.title}</span>
+                              </div>
+                            </td>
+                            <td>{new Date(s.graded_date).toLocaleDateString('vi-VN')}</td>
+                            <td>
+                              <span style={{ fontWeight: '600', color: s.score >= 8 ? 'var(--success)' : s.score < 5 ? 'var(--danger)' : 'var(--primary)' }}>
+                                {s.score} / 10
+                              </span>
+                              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '4px' }}>
+                                - {s.score * 10}%
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-                
-                {isExpanded && (
-                  <div style={{ padding: '0 1rem 1rem 1rem' }}>
-                    <div style={{ overflowX: 'auto', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
-                      <table className="data-table" style={{ width: '100%', fontSize: '0.9rem' }}>
-                        <thead>
-                          <tr>
-                            <th style={{ padding: '8px 12px' }}>Bài tập</th>
-                            <th style={{ padding: '8px 12px' }}>Ngày chấm</th>
-                            <th style={{ padding: '8px 12px' }}>Điểm số</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {groupedScores[subject].map(s => (
-                            <tr key={s.id}>
-                              <td style={{ padding: '8px 12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <FileText size={14} color="var(--text-muted)" />
-                                  <span>{s.title}</span>
-                                </div>
-                              </td>
-                              <td style={{ padding: '8px 12px' }}>{new Date(s.graded_date).toLocaleDateString('vi-VN')}</td>
-                              <td style={{ padding: '8px 12px' }}>
-                                <span style={{ fontWeight: '600', color: s.score >= 8 ? 'var(--success)' : s.score < 5 ? 'var(--danger)' : 'var(--primary)' }}>
-                                  {s.score} / 10
-                                </span>
-                                <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: '4px' }}>
-                                  - {s.score * 10}%
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+              );
+            })
+          ) : (
+            // MULTIPLE SUBJECTS: Render cards that navigate
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+              {Object.keys(groupedScores).map(subject => {
+                const avgScore = (groupedScores[subject].reduce((acc, curr) => acc + curr.score, 0) / groupedScores[subject].length).toFixed(1);
+                return (
+                  <div 
+                    key={subject} 
+                    className="glass-panel hover-effect"
+                    style={{ padding: '1.25rem', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '0.5rem', border: '1px solid var(--border)' }}
+                    onClick={() => navigate(`/parent/scores/${student.id}/${encodeURIComponent(subject)}`)}
+                  >
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem', color: 'var(--primary)' }}>
+                      <Award size={18} /> {subject}
+                    </h3>
+                    <p style={{ margin: '0 0 0.5rem 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                      Có {groupedScores[subject].length} bài tập đã chấm
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--glass-border)' }}>
+                      <div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Điểm TB</span>
+                        <div style={{ fontWeight: 'bold', color: 'var(--primary)', fontSize: '1.2rem' }}>{avgScore}</div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', color: 'var(--accent)', fontSize: '0.85rem', fontWeight: 600 }}>
+                        Chi tiết <ChevronRight size={16} />
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </div>
+          )}
         </div>
         </>
       )}

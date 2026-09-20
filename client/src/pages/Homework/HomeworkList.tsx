@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import HomeworkForm from './HomeworkForm';
 import GradeForm from './GradeForm';
+import HomeworkDetailModal from './HomeworkDetailModal';
 
 export interface Homework {
   id: string;
@@ -25,7 +26,9 @@ const HomeworkList: React.FC = () => {
   const [homeworks, setHomeworks] = useState<Homework[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isGradeOpen, setIsGradeOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedHomework, setSelectedHomework] = useState<Homework | null>(null);
+  const [selectedDetailHomework, setSelectedDetailHomework] = useState<Homework | null>(null);
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
 
@@ -138,11 +141,14 @@ const HomeworkList: React.FC = () => {
                        </button>
                       )}
                       
-                      {hw.feedback && (
-                        <button className="btn-icon" title={hw.feedback} onClick={() => showSuccess(`Nhận xét: ${hw.feedback}`)}>
-                          <FileText size={18} />
-                        </button>
-                      )}
+                      <button 
+                        className="btn-secondary" 
+                        style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }} 
+                        onClick={() => { setSelectedDetailHomework(hw); setDetailModalOpen(true); }}
+                      >
+                        <FileText size={14} />
+                        Chi tiết
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -170,6 +176,13 @@ const HomeworkList: React.FC = () => {
             fetchHomeworks();
             showSuccess('Đã chấm điểm thành công!');
           }} 
+        />
+      )}
+
+      {detailModalOpen && selectedDetailHomework && (
+        <HomeworkDetailModal 
+          homework={selectedDetailHomework}
+          onClose={() => setDetailModalOpen(false)}
         />
       )}
     </div>

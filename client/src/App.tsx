@@ -14,6 +14,7 @@ import HomeworkList from './pages/Homework/HomeworkList';
 import TuitionList from './pages/Tuition/TuitionList';
 import ReportsPage from './pages/Reports/ReportsPage';
 import ScoresPage from './pages/Scores/ScoresPage';
+import SubjectScoreDetails from './pages/Scores/SubjectScoreDetails';
 import SettingsPage from './pages/Settings/SettingsPage';
 import ParentSettings from './pages/Settings/ParentSettings';
 
@@ -48,6 +49,7 @@ function App() {
               <Route path="/parent/schedule" element={<SchedulesList />} />
               <Route path="/parent/homework" element={<HomeworkList />} />
               <Route path="/parent/scores" element={<ScoresPage />} />
+              <Route path="/parent/scores/:studentId/:subject" element={<SubjectScoreDetails />} />
               <Route path="/parent/tuition" element={<TuitionList />} />
               <Route path="/parent/reports" element={<ReportsPage />} />
               <Route path="/parent/settings" element={<ParentSettings />} />
