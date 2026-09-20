@@ -177,19 +177,28 @@ const SchedulesList: React.FC = () => {
                 </div>
               )}
 
-              {user?.role === 'TUTOR' && activeTab === 'COMPLETED' && (
+              {activeTab === 'COMPLETED' && schedule.session && (
                 <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600 }}>
-                      <CheckCircle size={14} /> Đã điểm danh
+                      <CheckCircle size={14} /> Điểm danh:
                     </span>
-                    <span className={`status-badge ${schedule.session?.attendance === 'PRESENT' ? 'active' : schedule.session?.attendance === 'ABSENT' ? 'inactive' : 'pending'}`}>
-                      {schedule.session?.attendance === 'PRESENT' ? 'Có mặt' : schedule.session?.attendance === 'ABSENT' ? 'Vắng mặt' : 'Đi trễ'}
+                    <span className={`status-badge ${schedule.session.attendance === 'PRESENT' ? 'active' : schedule.session.attendance === 'ABSENT' ? 'inactive' : 'pending'}`}>
+                      {schedule.session.attendance === 'PRESENT' ? 'Có mặt' : schedule.session.attendance === 'ABSENT' ? 'Vắng mặt' : 'Đi trễ'}
                     </span>
                   </div>
-                  <button className="btn-secondary" style={{ width: '100%' }} onClick={() => handleMarkAttendance(schedule)}>
-                    <Edit3 size={14} /> Sửa điểm danh
-                  </button>
+                  
+                  {schedule.session.feedback && (
+                    <div style={{ fontSize: '13px', background: 'var(--background)', padding: '8px', borderRadius: '6px', fontStyle: 'italic', borderLeft: '3px solid var(--primary)' }}>
+                      "{schedule.session.feedback}"
+                    </div>
+                  )}
+
+                  {user?.role === 'TUTOR' && (
+                    <button className="btn-secondary" style={{ width: '100%', marginTop: '4px' }} onClick={() => handleMarkAttendance(schedule)}>
+                      <Edit3 size={14} /> Sửa điểm danh
+                    </button>
+                  )}
                 </div>
               )}
             </div>
