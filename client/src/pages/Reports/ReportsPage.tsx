@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { GraduationCap, Calendar, Clock, DollarSign, CalendarCheck, BookOpen, MessageSquare, Award, Printer, FileText, ChevronRight } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
-import './Reports.css';
+
 
 interface Student {
   id: string;

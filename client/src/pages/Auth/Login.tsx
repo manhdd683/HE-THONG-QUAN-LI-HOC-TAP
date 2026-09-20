@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
-import './Auth.css';
+
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');

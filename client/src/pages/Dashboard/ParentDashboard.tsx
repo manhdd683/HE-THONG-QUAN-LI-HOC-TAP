@@ -1,7 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, GraduationCap, DollarSign, Calendar, TrendingUp } from 'lucide-react';
-import './Dashboard.css';
+
 
 const ParentDashboard: React.FC = () => {
   const { user } = useAuth();

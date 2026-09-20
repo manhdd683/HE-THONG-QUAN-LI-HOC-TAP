@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../utils/api';
-import './Auth.css';
+
 
 const ForgotPassword: React.FC = () => {
   const [step, setStep] = useState<1 | 2>(1);

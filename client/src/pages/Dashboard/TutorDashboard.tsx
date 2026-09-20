@@ -8,7 +8,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-import './Dashboard.css';
+
 
 interface DashboardData {
   totalStudents: number;
