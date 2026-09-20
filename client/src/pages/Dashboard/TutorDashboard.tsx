@@ -3,12 +3,11 @@ import {
   Users, BookOpen, GraduationCap, DollarSign, FileText,
   Mail, Check, X, Calendar, Clock, ChevronRight,
   AlertCircle, CheckCircle2, BookMarked, Globe, MapPin,
-  TrendingUp, AlertTriangle
+  TrendingUp, TrendingDown, AlertTriangle, Plus, CalendarX, FileCheck, FileX
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-
 
 interface DashboardData {
   totalStudents: number;
@@ -22,7 +21,7 @@ interface DashboardData {
   recentReports: any[];
 }
 
-const AVATAR_COLORS = ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6'];
+const AVATAR_COLORS = ['#3b82f6','#10b981','#ec4899','#f59e0b','#6366f1','#8b5cf6'];
 const getColor = (name: string) => AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 const getInitials = (name: string) => name.split(' ').map((w: string) => w[0]).slice(-2).join('').toUpperCase();
 const formatDate = (d: string) => new Date(d).toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit' });
@@ -72,18 +71,16 @@ const TutorDashboard: React.FC = () => {
 
   return (
     <div className="dashboard">
-      {/* HERO HEADER */}
-      <div className="dashboard-header">
-        <div className="dashboard-header-content">
-          <h1>Xin chào, {user?.name}</h1>
-          <p>Tổng quan hoạt động dạy học của bạn hôm nay.</p>
-          <div className="dashboard-date-badge">
-            <Calendar size={13} />
-            {today}
-          </div>
+      {/* COMPACT WELCOME BANNER */}
+      <div className="dash-welcome">
+        <div className="dash-welcome-text">
+          <h1>Xin chào, {user?.name} 👋</h1>
+          <p>Hôm nay là {today}. Chúc bạn một ngày dạy học hiệu quả!</p>
         </div>
-        <div className="dashboard-header-deco">
-          <TrendingUp size={80} strokeWidth={1} />
+        <div className="dash-welcome-action">
+          <button className="btn-primary" onClick={() => navigate('/tutor/schedule')}>
+            <Plus size={18} /> Tạo buổi học mới
+          </button>
         </div>
       </div>
 
@@ -94,7 +91,7 @@ const TutorDashboard: React.FC = () => {
           <div className="stat-info">
             <span className="stat-title">Học sinh</span>
             <span className="stat-value">{data?.totalStudents}</span>
-            <span className="stat-badge ok">Đang học</span>
+            <div className="stat-trend positive"><TrendingUp size={12} /> <span>+2 tháng này</span></div>
           </div>
         </div>
         <div className="stat-card glass-panel sessions" onClick={() => navigate('/tutor/schedule')}>
@@ -102,27 +99,27 @@ const TutorDashboard: React.FC = () => {
           <div className="stat-info">
             <span className="stat-title">Lịch hôm nay</span>
             <span className="stat-value">{data?.todaySessionsCount}</span>
-            <span className="stat-badge ok">Buổi học</span>
+            <div className="stat-trend neutral"><span>Khá bận rộn</span></div>
           </div>
         </div>
         <div className="stat-card glass-panel homeworks" onClick={() => navigate('/tutor/homework')}>
           <div className="stat-icon"><GraduationCap size={22} /></div>
           <div className="stat-info">
-            <span className="stat-title">Cần chấm</span>
+            <span className="stat-title">Bài tập</span>
             <span className="stat-value">{data?.pendingHomeworksCount}</span>
-            <span className={`stat-badge ${(data?.pendingHomeworksCount ?? 0) > 0 ? 'urgent' : 'ok'}`}>
-              {(data?.pendingHomeworksCount ?? 0) > 0 ? 'Chờ chấm' : 'Xong rồi'}
-            </span>
+            <div className={`stat-trend ${(data?.pendingHomeworksCount ?? 0) > 0 ? 'warning' : 'positive'}`}>
+              {(data?.pendingHomeworksCount ?? 0) > 0 ? <span>Cần chấm gấp</span> : <><Check size={12}/> <span>Đã hoàn tất</span></>}
+            </div>
           </div>
         </div>
         <div className="stat-card glass-panel tuition" onClick={() => navigate('/tutor/tuition')}>
           <div className="stat-icon"><DollarSign size={22} /></div>
           <div className="stat-info">
-            <span className="stat-title">Học phí</span>
+            <span className="stat-title">Học phí nợ</span>
             <span className="stat-value">{data?.unpaidCyclesCount}</span>
-            <span className={`stat-badge ${(data?.unpaidCyclesCount ?? 0) > 0 ? 'urgent' : 'ok'}`}>
-              {(data?.unpaidCyclesCount ?? 0) > 0 ? 'Chưa thu' : 'Ổn định'}
-            </span>
+            <div className={`stat-trend ${(data?.unpaidCyclesCount ?? 0) > 0 ? 'negative' : 'positive'}`}>
+              {(data?.unpaidCyclesCount ?? 0) > 0 ? <><TrendingDown size={12} /> <span>Cần nhắc nhở</span></> : <><Check size={12}/> <span>Ổn định</span></>}
+            </div>
           </div>
         </div>
       </div>
@@ -132,15 +129,14 @@ const TutorDashboard: React.FC = () => {
         <div className="dash-alert-panel glass-panel">
           <div className="dash-section-header">
             <span className="dash-section-title">
-              <span className="icon-wrapper" style={{ background: 'rgba(245,158,11,0.1)', color: '#d97706' }}><Mail size={15} /></span>
+              <span className="icon-wrapper" style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}><Mail size={15} /></span>
               Yêu cầu đổi Email ({pendingEmails.length})
             </span>
-            <span className="dash-badge orange">{pendingEmails.length} yêu cầu</span>
           </div>
           <div className="dash-list">
             {pendingEmails.map(req => (
               <div key={req.id} className="dash-item">
-                <div className="dash-item-avatar" style={{ background: 'rgba(245,158,11,0.1)', color: '#d97706' }}>
+                <div className="dash-item-avatar" style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}>
                   {getInitials(req.name)}
                 </div>
                 <div className="dash-item-content">
@@ -148,14 +144,14 @@ const TutorDashboard: React.FC = () => {
                   <div className="dash-item-sub">
                     <span style={{ textDecoration: 'line-through', opacity: 0.6, marginRight: 4 }}>{req.email}</span>
                     <ChevronRight size={12} />
-                    <strong style={{ color: '#d97706', marginLeft: 4 }}>{req.pending_email}</strong>
+                    <strong style={{ color: 'var(--warning)', marginLeft: 4 }}>{req.pending_email}</strong>
                   </div>
                 </div>
                 <div className="dash-item-actions">
-                  <button className="btn-primary" style={{ padding: '6px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 5, width: 'auto' }} onClick={() => handleApproveEmail(req.id)}>
+                  <button className="btn-primary" style={{ padding: '6px 14px', fontSize: '13px' }} onClick={() => handleApproveEmail(req.id)}>
                     <Check size={14} /> Đồng ý
                   </button>
-                  <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: 5, width: 'auto', color: 'var(--danger)' }} onClick={() => handleRejectEmail(req.id)}>
+                  <button className="btn-secondary" style={{ padding: '6px 14px', fontSize: '13px', color: 'var(--danger)' }} onClick={() => handleRejectEmail(req.id)}>
                     <X size={14} /> Từ chối
                   </button>
                 </div>
@@ -171,13 +167,17 @@ const TutorDashboard: React.FC = () => {
         <div className="dash-section glass-panel">
           <div className="dash-section-header">
             <span className="dash-section-title">
-              <span className="icon-wrapper" style={{ background: 'rgba(34,197,94,0.12)', color: '#16a34a' }}><Clock size={15} /></span>
+              <span className="icon-wrapper" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}><Clock size={15} /></span>
               Lịch học hôm nay
             </span>
             {(data?.todaySessionsCount ?? 0) > 0 && <span className="dash-badge green">{data?.todaySessionsCount} buổi</span>}
           </div>
           {!data?.todaySchedules.length ? (
-            <div className="dash-empty"><Calendar size={36} strokeWidth={1.2} /><span>Hôm nay không có lịch học</span></div>
+            <div className="dash-empty">
+              <CalendarX size={36} strokeWidth={1.2} />
+              <span>Hôm nay trống lịch</span>
+              <button className="btn-secondary" onClick={() => navigate('/tutor/schedule')} style={{ marginTop: 8 }}>Xếp lịch ngay</button>
+            </div>
           ) : data.todaySchedules.map(s => (
             <div key={s.id} className="dash-item">
               <div className="dash-item-avatar" style={{ background: getColor(s.student.name) + '22', color: getColor(s.student.name) }}>{getInitials(s.student.name)}</div>
@@ -200,13 +200,16 @@ const TutorDashboard: React.FC = () => {
         <div className="dash-section glass-panel">
           <div className="dash-section-header">
             <span className="dash-section-title">
-              <span className="icon-wrapper" style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}><Calendar size={15} /></span>
+              <span className="icon-wrapper" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}><Calendar size={15} /></span>
               Lịch sắp tới (7 ngày)
             </span>
             <span className="dash-see-all" onClick={() => navigate('/tutor/schedule')}>Xem tất cả <ChevronRight size={13} /></span>
           </div>
           {!data?.upcomingSchedules.length ? (
-            <div className="dash-empty"><Calendar size={36} strokeWidth={1.2} /><span>Không có lịch nào trong 7 ngày tới</span></div>
+            <div className="dash-empty">
+              <CalendarX size={36} strokeWidth={1.2} />
+              <span>Không có lịch nào sắp tới</span>
+            </div>
           ) : data.upcomingSchedules.map(s => (
             <div key={s.id} className="dash-item">
               <div className="dash-item-avatar" style={{ background: getColor(s.student.name) + '22', color: getColor(s.student.name) }}>{getInitials(s.student.name)}</div>
@@ -216,7 +219,10 @@ const TutorDashboard: React.FC = () => {
               </div>
               <div className="dash-item-right">
                 <div className="dash-item-time">{formatDate(s.date)}</div>
-                <div className="dash-item-meta">{s.format === 'ONLINE' ? <Globe size={11} /> : <MapPin size={11} />}</div>
+                <div className="dash-item-meta">
+                  {s.format === 'ONLINE' ? <Globe size={11} /> : <Users size={11} />}
+                  <span>{s.subject || 'Lịch học'}</span>
+                </div>
               </div>
             </div>
           ))}
@@ -226,21 +232,24 @@ const TutorDashboard: React.FC = () => {
         <div className="dash-section glass-panel">
           <div className="dash-section-header">
             <span className="dash-section-title">
-              <span className="icon-wrapper" style={{ background: 'rgba(236,72,153,0.12)', color: '#ec4899' }}><BookMarked size={15} /></span>
+              <span className="icon-wrapper" style={{ background: 'var(--pink-bg)', color: 'var(--pink)' }}><BookMarked size={15} /></span>
               Bài tập cần chấm
             </span>
             {(data?.pendingHomeworksCount ?? 0) > 0 && <span className="dash-badge pink">{data?.pendingHomeworksCount} bài</span>}
           </div>
           {!data?.pendingHomeworks.length ? (
-            <div className="dash-empty"><CheckCircle2 size={36} strokeWidth={1.2} /><span>Tất cả bài tập đã được chấm!</span></div>
+            <div className="dash-empty">
+              <FileCheck size={36} strokeWidth={1.2} />
+              <span>Tuyệt vời! Tất cả bài tập đã được chấm.</span>
+            </div>
           ) : data.pendingHomeworks.map(hw => (
             <div key={hw.id} className="dash-item clickable" onClick={() => navigate('/tutor/homework')}>
-              <div className="dash-item-avatar" style={{ background: 'rgba(236,72,153,0.1)', color: '#ec4899' }}><BookMarked size={18} /></div>
+              <div className="dash-item-avatar" style={{ background: 'var(--pink-bg)', color: 'var(--pink)' }}><BookMarked size={18} /></div>
               <div className="dash-item-content">
                 <div className="dash-item-title">{hw.title}</div>
                 <div className="dash-item-sub"><span className="status-dot pending" />{hw.student?.name}</div>
               </div>
-              <div className="dash-item-right"><span style={{ color: '#ec4899', fontSize: '12px', fontWeight: 600 }}>Chưa chấm</span></div>
+              <div className="dash-item-right"><span style={{ color: 'var(--pink)', fontSize: '12px', fontWeight: 600 }}>Chưa chấm</span></div>
             </div>
           ))}
         </div>
@@ -249,13 +258,16 @@ const TutorDashboard: React.FC = () => {
         <div className="dash-section glass-panel">
           <div className="dash-section-header">
             <span className="dash-section-title">
-              <span className="icon-wrapper" style={{ background: 'rgba(245,158,11,0.12)', color: '#d97706' }}><AlertCircle size={15} /></span>
+              <span className="icon-wrapper" style={{ background: 'var(--warning-bg)', color: 'var(--warning)' }}><AlertCircle size={15} /></span>
               Học phí chưa thu
             </span>
             {(data?.unpaidCyclesCount ?? 0) > 0 && <span className="dash-badge orange">{data?.unpaidCyclesCount} chu kỳ</span>}
           </div>
           {!data?.unpaidCycles.length ? (
-            <div className="dash-empty"><CheckCircle2 size={36} strokeWidth={1.2} /><span>Tất cả học phí đã thanh toán!</span></div>
+            <div className="dash-empty">
+              <CheckCircle2 size={36} strokeWidth={1.2} />
+              <span>Tất cả học phí đã được thanh toán!</span>
+            </div>
           ) : data.unpaidCycles.map(cycle => (
             <div key={cycle.id} className="dash-item clickable" onClick={() => navigate('/tutor/tuition')}>
               <div className="dash-item-avatar" style={{ background: getColor(cycle.student.name) + '22', color: getColor(cycle.student.name) }}>{getInitials(cycle.student.name)}</div>
@@ -268,8 +280,8 @@ const TutorDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="dash-item-right">
-                <div className="dash-item-time" style={{ color: cycle.status === 'OVERDUE' ? '#ef4444' : '#d97706' }}>
-                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(cycle.total_amount - cycle.paid_amount)}
+                <div className="dash-item-time" style={{ color: cycle.status === 'OVERDUE' ? 'var(--danger)' : 'var(--warning)' }}>
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', notation: 'compact' }).format(Math.max(0, cycle.total_amount - cycle.paid_amount))}
                 </div>
                 <div className="dash-item-meta">Còn lại</div>
               </div>
@@ -281,13 +293,17 @@ const TutorDashboard: React.FC = () => {
         <div className="dash-section glass-panel dash-full-width">
           <div className="dash-section-header">
             <span className="dash-section-title">
-              <span className="icon-wrapper" style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}><FileText size={15} /></span>
+              <span className="icon-wrapper" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}><FileText size={15} /></span>
               Báo cáo gần đây
             </span>
             <span className="dash-see-all" onClick={() => navigate('/tutor/reports')}>Tạo báo cáo <ChevronRight size={13} /></span>
           </div>
           {!data?.recentReports.length ? (
-            <div className="dash-empty"><FileText size={36} strokeWidth={1.2} /><span>Chưa có báo cáo nào</span></div>
+            <div className="dash-empty">
+              <FileX size={36} strokeWidth={1.2} />
+              <span>Chưa có báo cáo nào được tạo</span>
+              <button className="btn-secondary" onClick={() => navigate('/tutor/reports')} style={{ marginTop: 8 }}>Tạo báo cáo ngay</button>
+            </div>
           ) : (
             <div className="dash-report-grid">
               {data.recentReports.map(r => (
@@ -296,7 +312,9 @@ const TutorDashboard: React.FC = () => {
                   <div>
                     <div className="dash-item-title">{r.name}</div>
                     <div className="dash-item-sub">{r.student?.name}</div>
-                    <div className="dash-item-sub" style={{ fontSize: 11, marginTop: 2 }}>{new Date(r.created_at).toLocaleString('vi-VN')}</div>
+                    <div className="dash-item-sub" style={{ fontSize: 11, marginTop: 4 }}>
+                      Tạo: {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(r.created_at))}
+                    </div>
                   </div>
                 </div>
               ))}

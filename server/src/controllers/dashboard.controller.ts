@@ -66,7 +66,6 @@ export const getTutorDashboardStats = async (req: AuthRequest, res: Response) =>
         },
         include: { student: true },
         orderBy: { due_date: 'asc' },
-        take: 5,
       }),
 
       prisma.reportHistory.findMany({
@@ -77,15 +76,18 @@ export const getTutorDashboardStats = async (req: AuthRequest, res: Response) =>
       }),
     ]);
 
+    // Lọc các chu kỳ thực sự còn nợ (total > paid)
+    const realUnpaidCycles = unpaidCycles.filter(c => c.total_amount > c.paid_amount);
+
     res.json({
       totalStudents,
       todaySessionsCount: todaySchedules.length,
       pendingHomeworksCount: pendingHomeworks.length,
-      unpaidCyclesCount: unpaidCycles.length,
+      unpaidCyclesCount: realUnpaidCycles.length,
       todaySchedules,
       upcomingSchedules,
       pendingHomeworks,
-      unpaidCycles,
+      unpaidCycles: realUnpaidCycles.slice(0, 5),
       recentReports,
     });
   } catch (error) {
