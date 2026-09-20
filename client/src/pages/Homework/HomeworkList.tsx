@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, CheckSquare, FileText, Send } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import HomeworkForm from './HomeworkForm';
 import GradeForm from './GradeForm';
 
@@ -26,6 +27,7 @@ const HomeworkList: React.FC = () => {
   const [isGradeOpen, setIsGradeOpen] = useState(false);
   const [selectedHomework, setSelectedHomework] = useState<Homework | null>(null);
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const fetchHomeworks = async () => {
     try {
@@ -49,9 +51,10 @@ const HomeworkList: React.FC = () => {
     try {
       await api.patch(`/homework/${id}/status`, { status: 'SUBMITTED', submission_text: 'Đã nộp bài qua hệ thống' });
       fetchHomeworks();
+      showSuccess('Đã nộp bài thành công!');
     } catch (err) {
       console.error(err);
-      alert('Lỗi nộp bài');
+      showError('Lỗi nộp bài');
     }
   };
 
@@ -136,7 +139,7 @@ const HomeworkList: React.FC = () => {
                       )}
                       
                       {hw.feedback && (
-                        <button className="btn-icon" title={hw.feedback} onClick={() => alert(`Nhận xét: ${hw.feedback}`)}>
+                        <button className="btn-icon" title={hw.feedback} onClick={() => showSuccess(`Nhận xét: ${hw.feedback}`)}>
                           <FileText size={18} />
                         </button>
                       )}
@@ -150,17 +153,23 @@ const HomeworkList: React.FC = () => {
       </div>
 
       {isFormOpen && (
-        <HomeworkForm
-          onClose={() => setIsFormOpen(false)}
-          onSuccess={fetchHomeworks}
+        <HomeworkForm 
+          onClose={() => setIsFormOpen(false)} 
+          onSuccess={() => {
+            fetchHomeworks();
+            showSuccess('Đã giao bài tập thành công!');
+          }} 
         />
       )}
 
       {isGradeOpen && selectedHomework && (
-        <GradeForm
-          homework={selectedHomework}
-          onClose={() => setIsGradeOpen(false)}
-          onSuccess={fetchHomeworks}
+        <GradeForm 
+          homework={selectedHomework} 
+          onClose={() => setIsGradeOpen(false)} 
+          onSuccess={() => {
+            fetchHomeworks();
+            showSuccess('Đã chấm điểm thành công!');
+          }} 
         />
       )}
     </div>

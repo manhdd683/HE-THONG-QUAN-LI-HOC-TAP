@@ -43,6 +43,7 @@ interface ReportData {
 
 const ReportsPage: React.FC = () => {
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<string>('');
   const [selectedMonth, setSelectedMonth] = useState<string>((new Date().getMonth() + 1).toString());
@@ -94,7 +95,7 @@ const ReportsPage: React.FC = () => {
       
     } catch (err) {
       console.error('Failed to generate report', err);
-      alert('Không thể tạo báo cáo');
+      showError('Không thể tạo báo cáo');
     } finally {
       setIsLoading(false);
     }
@@ -118,7 +119,7 @@ const ReportsPage: React.FC = () => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     } catch (err) {
       console.error(err);
-      alert('Không thể mở báo cáo này.');
+      showError('Không thể mở báo cáo này.');
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +138,7 @@ const ReportsPage: React.FC = () => {
     
     setTimeout(() => {
       setEmailSent(true);
-      alert('Đã gửi báo cáo thành công qua Email cho Phụ huynh!');
+      showSuccess('Đã gửi báo cáo thành công qua Email cho Phụ huynh!');
     }, 1500);
   };
 

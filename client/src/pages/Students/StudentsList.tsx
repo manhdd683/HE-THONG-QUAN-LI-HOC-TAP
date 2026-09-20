@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2 } from 'lucide-react';
 import StudentForm from './StudentForm';
 import StudentScoreModal from './StudentScoreModal';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import api from '../../utils/api';
 
 export interface Student {
@@ -35,8 +36,8 @@ const StudentsList: React.FC = () => {
   const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
-  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const fetchStudents = async () => {
     try {
@@ -65,15 +66,13 @@ const StudentsList: React.FC = () => {
     if (!studentToDelete) return;
     try {
       await api.delete(`/students/${studentToDelete.id}`);
-      setToastMsg({ type: 'success', text: 'Đã xóa học sinh thành công!' });
+      showSuccess('Đã xóa học sinh thành công!');
       setStudentToDelete(null);
       fetchStudents();
-      setTimeout(() => setToastMsg(null), 3000);
     } catch (error: any) {
       console.error('Delete error:', error);
-      setToastMsg({ type: 'error', text: 'Không thể xóa học sinh: ' + (error.response?.data?.error || error.response?.data?.message || error.message) });
+      showError('Không thể xóa học sinh: ' + (error.response?.data?.error || error.response?.data?.message || error.message));
       setStudentToDelete(null);
-      setTimeout(() => setToastMsg(null), 5000);
     }
   };
 
@@ -161,7 +160,10 @@ const StudentsList: React.FC = () => {
         <StudentForm 
           student={selectedStudent} 
           onClose={() => setIsModalOpen(false)} 
-          onSuccess={fetchStudents} 
+          onSuccess={() => {
+            fetchStudents();
+            showSuccess(selectedStudent ? 'Đã chỉnh sửa học sinh thành công!' : 'Đã thêm học sinh thành công!');
+          }} 
         />
       )}
 
@@ -188,21 +190,6 @@ const StudentsList: React.FC = () => {
               <button className="btn-primary" style={{ backgroundColor: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={confirmDelete}>Xóa học sinh</button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* TOAST MESSAGE */}
-      {toastMsg && (
-        <div style={{
-          position: 'fixed', bottom: '20px', right: '20px', 
-          backgroundColor: toastMsg.type === 'success' ? 'var(--success)' : 'var(--danger)',
-          color: '#fff', padding: '12px 24px', borderRadius: '8px', 
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 9999,
-          fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px',
-          animation: 'slideIn 0.3s ease-out'
-        }}>
-          {toastMsg.type === 'success' ? <span style={{ fontSize: '18px' }}>✓</span> : null}
-          {toastMsg.text}
         </div>
       )}
     </div>

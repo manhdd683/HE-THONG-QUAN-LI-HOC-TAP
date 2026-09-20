@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { User, Bell, Shield, Moon, Save, Mail, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import api from '../../utils/api';
 
 const SettingsPage: React.FC = () => {
   const { user, updateUser } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -31,12 +33,12 @@ const SettingsPage: React.FC = () => {
       if (activeTab === 'profile') {
         const res = await api.put('/auth/profile', { name: formData.name, phone: formData.phone });
         updateUser(res.data.user);
-        alert('Đã cập nhật thông tin thành công!');
+        showSuccess('Đã cập nhật thông tin thành công!');
       } else {
-        alert('Đã lưu cấu hình thành công!');
+        showSuccess('Đã lưu cấu hình thành công!');
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Lỗi khi cập nhật thông tin');
+      showError(err.response?.data?.message || 'Lỗi khi cập nhật thông tin');
     }
   };
 
@@ -46,8 +48,9 @@ const SettingsPage: React.FC = () => {
       const res = await api.post('/auth/request-email-change', { newEmail });
       setEmailStatus(res.data.message);
       setNewEmail('');
+      showSuccess(res.data.message);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Có lỗi xảy ra');
+      showError(err.response?.data?.message || 'Có lỗi xảy ra');
     }
   };
 

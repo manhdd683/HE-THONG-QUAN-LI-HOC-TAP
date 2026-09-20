@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 import api from '../../utils/api';
 import ParentForm from './ParentForm';
 
@@ -17,6 +18,7 @@ const ParentsList: React.FC = () => {
   const [parents, setParents] = useState<Parent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedParent, setSelectedParent] = useState<Parent | null>(null);
+  const { showSuccess, showError } = useToast();
 
   const fetchParents = async () => {
     try {
@@ -46,9 +48,10 @@ const ParentsList: React.FC = () => {
     try {
       await api.put(`/parents/${parent.id}/approve-email`);
       fetchParents(); // Refresh
+      showSuccess('Duyệt email thành công!');
     } catch (error) {
       console.error('Lỗi duyệt email', error);
-      alert('Duyệt email thất bại. Xem console log.');
+      showError('Duyệt email thất bại. Xem console log.');
     }
   };
 
@@ -132,7 +135,10 @@ const ParentsList: React.FC = () => {
         <ParentForm 
           parent={selectedParent} 
           onClose={() => setIsModalOpen(false)} 
-          onSuccess={fetchParents} 
+          onSuccess={() => {
+            fetchParents();
+            showSuccess(selectedParent ? 'Chỉnh sửa phụ huynh thành công!' : 'Thêm phụ huynh thành công!');
+          }} 
         />
       )}
     </div>

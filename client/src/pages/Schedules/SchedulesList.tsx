@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, CheckCircle, Clock, Calendar, MapPin, Video, User, Edit2, Trash2, Edit3 } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import ScheduleForm from './ScheduleForm';
 import AttendanceForm from './AttendanceForm';
 
@@ -30,11 +31,11 @@ const SchedulesList: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [scheduleToEdit, setScheduleToEdit] = useState<Schedule | null>(null);
   const [scheduleToDelete, setScheduleToDelete] = useState<Schedule | null>(null);
-  const [toastMsg, setToastMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [activeTab, setActiveTab] = useState<'SCHEDULED' | 'COMPLETED'>('SCHEDULED');
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const fetchSchedules = async () => {
     try {
@@ -62,15 +63,13 @@ const SchedulesList: React.FC = () => {
     if (!scheduleToDelete) return;
     try {
       await api.delete(`/schedules/${scheduleToDelete.id}`);
-      setToastMsg({ type: 'success', text: 'Đã xóa lịch học thành công!' });
+      showSuccess('Đã xóa lịch học thành công!');
       setScheduleToDelete(null);
       fetchSchedules();
-      setTimeout(() => setToastMsg(null), 3000);
     } catch (error: any) {
       console.error('Delete error:', error);
-      setToastMsg({ type: 'error', text: 'Không thể xóa lịch học: ' + (error.response?.data?.error || error.message) });
+      showError('Không thể xóa lịch học: ' + (error.response?.data?.error || error.message));
       setScheduleToDelete(null);
-      setTimeout(() => setToastMsg(null), 5000);
     }
   };
 
@@ -210,8 +209,7 @@ const SchedulesList: React.FC = () => {
             setIsFormOpen(false);
             setScheduleToEdit(null);
             fetchSchedules();
-            setToastMsg({ type: 'success', text: scheduleToEdit ? 'Đã cập nhật lịch học!' : 'Đã tạo lịch học thành công!' });
-            setTimeout(() => setToastMsg(null), 3000);
+            showSuccess(scheduleToEdit ? 'Đã cập nhật lịch học!' : 'Đã tạo lịch học thành công!');
           }}
         />
       )}
@@ -227,8 +225,7 @@ const SchedulesList: React.FC = () => {
             setIsAttendanceOpen(false);
             setSelectedSchedule(null);
             fetchSchedules();
-            setToastMsg({ type: 'success', text: 'Đã điểm danh thành công!' });
-            setTimeout(() => setToastMsg(null), 3000);
+            showSuccess('Đã điểm danh thành công!');
           }}
         />
       )}
@@ -253,21 +250,6 @@ const SchedulesList: React.FC = () => {
               <button className="btn-primary" style={{ backgroundColor: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={confirmDelete}>Xóa lịch</button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* TOAST MESSAGE */}
-      {toastMsg && (
-        <div style={{
-          position: 'fixed', bottom: '20px', right: '20px', 
-          backgroundColor: toastMsg.type === 'success' ? 'var(--success)' : 'var(--danger)',
-          color: '#fff', padding: '12px 24px', borderRadius: '8px', 
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 9999,
-          fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px',
-          animation: 'slideIn 0.3s ease-out'
-        }}>
-          {toastMsg.type === 'success' ? <CheckCircle size={18} /> : null}
-          {toastMsg.text}
         </div>
       )}
     </div>
