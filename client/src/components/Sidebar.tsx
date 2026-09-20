@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -53,16 +54,24 @@ const Sidebar = () => {
       </div>
 
       <nav className="sidebar-nav">
-        {links.map((link) => (
-          <Link
-            key={link.path}
-            to={link.path}
-            className={`nav-item ${location.pathname === link.path ? 'active' : ''}`}
-          >
-            {link.icon}
-            <span>{link.label}</span>
-          </Link>
-        ))}
+        {links.map((link) => {
+          const isActive = location.pathname === link.path;
+          return (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`nav-item ${isActive ? 'active' : ''}`}
+            >
+              <div style={{ display: 'flex', color: 'inherit' }}>
+                {React.cloneElement(link.icon as React.ReactElement, {
+                  fill: isActive ? 'currentColor' : 'none',
+                  strokeWidth: isActive ? 1.5 : 2
+                })}
+              </div>
+              <span>{link.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="sidebar-footer">
