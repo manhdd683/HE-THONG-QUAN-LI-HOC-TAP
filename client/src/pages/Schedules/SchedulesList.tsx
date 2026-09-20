@@ -129,6 +129,7 @@ const SchedulesList: React.FC = () => {
                           : 'Bạn có chắc chắn muốn xóa lịch này?')) {
                           try {
                             await api.delete(`/schedules/${schedule.id}`);
+                            alert('Đã xóa lịch học thành công!');
                             fetchSchedules();
                           } catch (error: any) {
                             console.error('Delete error:', error);
