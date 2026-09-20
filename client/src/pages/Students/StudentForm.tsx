@@ -14,6 +14,10 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose, onSuccess }
   const [formData, setFormData] = useState({
     name: '',
     parent_id: '',
+    parentMode: 'select', // 'select' or 'create'
+    parent_name: '',
+    parent_email: '',
+    parent_phone: '',
     dob: '',
     gender: 'Nam',
     school: '',
@@ -150,20 +154,57 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose, onSuccess }
             </div>
           </div>
           
-          <div className="form-group">
-            <label>Phụ huynh liên kết *</label>
-            <select
-              name="parent_id"
-              className="form-input"
-              value={formData.parent_id}
-              onChange={handleChange}
-              required
-            >
-              <option value="">-- Chọn phụ huynh --</option>
-              {parents.map(p => (
-                <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
-              ))}
-            </select>
+          <div className="form-group" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'var(--background)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <label style={{ margin: 0, fontWeight: 600 }}>Phụ huynh</label>
+              {!student && (
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button 
+                    type="button" 
+                    className={`btn-icon ${formData.parentMode === 'select' ? 'active' : ''}`}
+                    style={{ padding: '4px 12px', fontSize: '13px', borderRadius: '100px', background: formData.parentMode === 'select' ? 'var(--primary)' : 'transparent', color: formData.parentMode === 'select' ? '#fff' : 'var(--text)' }}
+                    onClick={() => setFormData(prev => ({ ...prev, parentMode: 'select' }))}
+                  >
+                    Chọn có sẵn
+                  </button>
+                  <button 
+                    type="button" 
+                    className={`btn-icon ${formData.parentMode === 'create' ? 'active' : ''}`}
+                    style={{ padding: '4px 12px', fontSize: '13px', borderRadius: '100px', background: formData.parentMode === 'create' ? 'var(--primary)' : 'transparent', color: formData.parentMode === 'create' ? '#fff' : 'var(--text)' }}
+                    onClick={() => setFormData(prev => ({ ...prev, parentMode: 'create' }))}
+                  >
+                    + Tạo mới
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {formData.parentMode === 'select' || student ? (
+              <select name="parent_id" className="form-input" value={formData.parent_id} onChange={handleChange} required>
+                <option value="">-- Chọn Phụ huynh --</option>
+                {parents.map(p => (
+                  <option key={p.id} value={p.id}>{p.name} ({p.email})</option>
+                ))}
+              </select>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Họ tên phụ huynh *</label>
+                  <input type="text" name="parent_name" className="form-input" value={formData.parent_name} onChange={handleChange} required placeholder="Nhập họ tên phụ huynh..." />
+                </div>
+                <div>
+                  <label style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Email đăng nhập *</label>
+                  <input type="email" name="parent_email" className="form-input" value={formData.parent_email} onChange={handleChange} required placeholder="email@example.com (Dùng để đăng nhập)" />
+                </div>
+                <div>
+                  <label style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Số điện thoại</label>
+                  <input type="tel" name="parent_phone" className="form-input" value={formData.parent_phone} onChange={handleChange} placeholder="VD: 0912345678" />
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
+                  * Mật khẩu đăng nhập mặc định cho phụ huynh mới sẽ là: <strong>123456</strong>
+                </p>
+              </div>
+            )}
           </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

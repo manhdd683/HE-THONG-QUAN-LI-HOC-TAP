@@ -56,9 +56,42 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
 
     const { 
       name, parent_id, dob, gender, 
-      school, grade, student_subjects, start_date 
+      school, grade, student_subjects, start_date,
+      parentMode, parent_name, parent_email, parent_phone
     } = req.body;
     
+    let finalParentId = parent_id;
+
+    if (parentMode === 'create') {
+      if (!parent_email || !parent_name) {
+        return res.status(400).json({ error: 'Vui lòng nhập họ tên và email của phụ huynh' });
+      }
+      
+      // Check if email already exists
+      const existingUser = await prisma.user.findUnique({ where: { email: parent_email } });
+      if (existingUser) {
+        return res.status(400).json({ error: 'Email phụ huynh đã tồn tại trong hệ thống. Vui lòng chọn phụ huynh có sẵn.' });
+      }
+
+      const bcrypt = require('bcryptjs');
+      const password_hash = await bcrypt.hash('123456', 10);
+
+      const newParent = await prisma.user.create({
+        data: {
+          email: parent_email,
+          name: parent_name,
+          phone: parent_phone,
+          password_hash,
+          role: 'PARENT'
+        }
+      });
+      finalParentId = newParent.id;
+    }
+
+    if (!finalParentId) {
+      return res.status(400).json({ error: 'Cần chọn hoặc tạo mới phụ huynh' });
+    }
+
     // Auto-generate student_code (e.g., HS001, HS002)
     const lastStudent = await prisma.student.findFirst({
       orderBy: { student_code: 'desc' }
@@ -84,7 +117,7 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
       data: {
         name,
         student_code,
-        parent_id,
+        parent_id: finalParentId,
         tutor_id: req.user.id,
         dob: dob ? new Date(dob) : null,
         gender,
