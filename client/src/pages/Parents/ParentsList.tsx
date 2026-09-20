@@ -18,6 +18,7 @@ const ParentsList: React.FC = () => {
   const [parents, setParents] = useState<Parent[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedParent, setSelectedParent] = useState<Parent | null>(null);
+  const [parentToDelete, setParentToDelete] = useState<Parent | null>(null);
   const { showSuccess, showError } = useToast();
 
   const fetchParents = async () => {
@@ -52,6 +53,20 @@ const ParentsList: React.FC = () => {
     } catch (error) {
       console.error('Lỗi duyệt email', error);
       showError('Duyệt email thất bại. Xem console log.');
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!parentToDelete) return;
+    try {
+      await api.delete(`/parents/${parentToDelete.id}`);
+      showSuccess('Đã khóa phụ huynh thành công!');
+      setParentToDelete(null);
+      fetchParents();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      showError('Không thể xóa phụ huynh: ' + (error.response?.data?.error || error.message));
+      setParentToDelete(null);
     }
   };
 
@@ -119,7 +134,7 @@ const ParentsList: React.FC = () => {
                       <button className="btn-icon" onClick={() => handleEdit(parent)} title="Chỉnh sửa">
                         <Edit size={18} />
                       </button>
-                      <button className="btn-icon text-danger" title="Khóa/Xóa">
+                      <button className="btn-icon text-danger" title="Khóa/Xóa" onClick={() => setParentToDelete(parent)}>
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -140,6 +155,26 @@ const ParentsList: React.FC = () => {
             showSuccess(selectedParent ? 'Chỉnh sửa phụ huynh thành công!' : 'Thêm phụ huynh thành công!');
           }} 
         />
+      )}
+
+      {parentToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-panel" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2>Xác nhận khóa</h2>
+            </div>
+            <div className="modal-form">
+              <p>Bạn có chắc chắn muốn khóa tài khoản phụ huynh <strong>{parentToDelete.name}</strong> không?</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '8px' }}>
+                Hành động này sẽ chuyển trạng thái của phụ huynh thành Vô hiệu hóa (Archived). Phụ huynh sẽ không thể đăng nhập vào hệ thống.
+              </p>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
+                <button type="button" className="btn-secondary" onClick={() => setParentToDelete(null)}>Hủy</button>
+                <button type="button" className="btn-primary" style={{ background: 'var(--danger)', color: 'white' }} onClick={confirmDelete}>Xác nhận Khóa</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
