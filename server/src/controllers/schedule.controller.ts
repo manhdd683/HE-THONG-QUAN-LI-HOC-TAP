@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../prisma';
 import { sendSessionFeedbackNotification } from '../utils/mailer';
 
+
 export const getSchedules = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
@@ -45,7 +46,6 @@ export const getSchedules = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch schedules' });
   }
 };
-
 export const createSchedule = async (req: Request, res: Response) => {
   try {
     const { student_id, subject, date, start_time, end_time, format, location, notes, recurring_weeks } = req.body;
@@ -97,7 +97,6 @@ export const createSchedule = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to create schedule' });
   }
 };
-
 export const updateScheduleStatus = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -113,7 +112,6 @@ export const updateScheduleStatus = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to update schedule' });
   }
 };
-
 export const updateSchedule = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -129,23 +127,51 @@ export const updateSchedule = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to update schedule' });
   }
 };
-
 export const deleteSchedule = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     
-    // Find session
-    const session = await prisma.session.findUnique({ where: { schedule_id: id } });
+    const session = await prisma.session.findUnique({ 
+      where: { schedule_id: id },
+      include: { schedule: true }
+    });
+    
     if (session) {
+      if (session.tuition_cycle_id) {
+        const cycle = await prisma.tuitionCycle.findUnique({ where: { id: session.tuition_cycle_id } });
+        if (cycle) {
+          let priceToDeduct = 0;
+          const subjectToUse = session.schedule.subject;
+          const studentSubject = await prisma.studentSubject.findFirst({
+            where: { student_id: session.schedule.student_id, subject: subjectToUse }
+          });
+          if (studentSubject) {
+            priceToDeduct = studentSubject.price_per_session;
+          } else {
+            const student = await prisma.student.findUnique({ where: { id: session.schedule.student_id } });
+            priceToDeduct = student?.price_per_session || 0;
+          }
+
+          if (cycle.completed_sessions <= 1 && cycle.status === 'UNPAID') {
+            await prisma.tuitionCycle.delete({ where: { id: cycle.id } });
+          } else {
+            await prisma.tuitionCycle.update({
+              where: { id: cycle.id },
+              data: {
+                completed_sessions: { decrement: 1 },
+                total_amount: { decrement: priceToDeduct }
+              }
+            });
+          }
+        }
+      }
+
       await prisma.comment.deleteMany({ where: { session_id: session.id } });
-      
-      // Delete ScoreHistory for all scores belonging to this session
       const scores = await prisma.score.findMany({ where: { session_id: session.id } });
       if (scores.length > 0) {
         const scoreIds = scores.map(s => s.id);
         await prisma.scoreHistory.deleteMany({ where: { score_id: { in: scoreIds } } });
       }
-      
       await prisma.score.deleteMany({ where: { session_id: session.id } });
       await prisma.session.delete({ where: { schedule_id: id } });
     }
@@ -157,63 +183,100 @@ export const deleteSchedule = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to delete schedule' });
   }
 };
+export const deleteAttendance = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.schedule_id as string;
+    
+    const session = await prisma.session.findUnique({ 
+      where: { schedule_id: id },
+      include: { schedule: true }
+    });
+    
+    if (!session) {
+      return res.status(404).json({ error: 'Attendance not found' });
+    }
 
+    if (session.tuition_cycle_id) {
+      const cycle = await prisma.tuitionCycle.findUnique({ where: { id: session.tuition_cycle_id } });
+      if (cycle) {
+        let priceToDeduct = 0;
+        const subjectToUse = session.schedule.subject;
+        const studentSubject = await prisma.studentSubject.findFirst({
+          where: { student_id: session.schedule.student_id, subject: subjectToUse }
+        });
+        if (studentSubject) {
+          priceToDeduct = studentSubject.price_per_session;
+        } else {
+          const student = await prisma.student.findUnique({ where: { id: session.schedule.student_id } });
+          priceToDeduct = student?.price_per_session || 0;
+        }
+
+        if (cycle.completed_sessions <= 1 && cycle.status === 'UNPAID') {
+          await prisma.tuitionCycle.delete({ where: { id: cycle.id } });
+        } else {
+          await prisma.tuitionCycle.update({
+            where: { id: cycle.id },
+            data: {
+              completed_sessions: { decrement: 1 },
+              total_amount: { decrement: priceToDeduct }
+            }
+          });
+        }
+      }
+    }
+
+    await prisma.comment.deleteMany({ where: { session_id: session.id } });
+    const scores = await prisma.score.findMany({ where: { session_id: session.id } });
+    if (scores.length > 0) {
+      const scoreIds = scores.map(s => s.id);
+      await prisma.scoreHistory.deleteMany({ where: { score_id: { in: scoreIds } } });
+    }
+    await prisma.score.deleteMany({ where: { session_id: session.id } });
+    await prisma.session.delete({ where: { schedule_id: id } });
+
+    await prisma.schedule.update({
+      where: { id },
+      data: { status: 'SCHEDULED' }
+    });
+
+    res.json({ message: 'Attendance deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete attendance' });
+  }
+};
 export const markAttendance = async (req: Request, res: Response) => {
   try {
     const schedule_id = req.params.schedule_id as string;
-    const { attendance, actual_subject, content, understanding_level, attitude, strengths, weaknesses } = req.body;
+    const { attendance, actual_subject, content, understanding_level, attitude, strengths, weaknesses, record_link } = req.body;
 
-    // Check if schedule exists
     const schedule = await prisma.schedule.findUnique({ where: { id: schedule_id } });
     if (!schedule) {
       return res.status(404).json({ error: 'Schedule not found' });
     }
 
-    // Upsert session
+    const existingSession = await prisma.session.findUnique({ where: { schedule_id } });
+
     const session = await prisma.session.upsert({
       where: { schedule_id },
-      update: {
-        attendance,
-        content
-      },
-      create: {
-        schedule_id,
-        attendance,
-        content
-      }
+      update: { attendance, content, record_link },
+      create: { schedule_id, attendance, content, record_link }
     });
 
-    // Create or update comment for this session
     if (understanding_level || attitude || strengths || weaknesses) {
-      const existingComment = await prisma.comment.findFirst({
-        where: { session_id: session.id }
-      });
+      const existingComment = await prisma.comment.findFirst({ where: { session_id: session.id } });
       if (existingComment) {
         await prisma.comment.update({
           where: { id: existingComment.id },
-          data: {
-            content: content || '',
-            understanding_level,
-            attitude,
-            strengths,
-            weaknesses
-          }
+          data: { content: content || '', understanding_level, attitude, strengths, weaknesses }
         });
       } else {
         await prisma.comment.create({
-          data: {
-            session_id: session.id,
-            content: content || '',
-            understanding_level,
-            attitude,
-            strengths,
-            weaknesses
-          }
+          data: { session_id: session.id, content: content || '', understanding_level, attitude, strengths, weaknesses }
         });
       }
     }
 
-    // Also update schedule status to completed and set actual subject if attendance is marked
     await prisma.schedule.update({
       where: { id: schedule_id },
       data: { 
@@ -222,84 +285,114 @@ export const markAttendance = async (req: Request, res: Response) => {
       }
     });
 
-    // If attendance is PRESENT, increment the active TuitionCycle completed_sessions
-    if (attendance === 'PRESENT') {
-      const subjectToUse = actual_subject || schedule.subject;
-      
-      const activeCycle = await prisma.tuitionCycle.findFirst({
-        where: {
-          student_id: schedule.student_id,
-          status: { in: ['UNPAID', 'PARTIAL'] },
-          OR: [
-            { subject: subjectToUse },
-            { subject: null },
-            { subject: '' }
-          ]
-        },
+    if (attendance === 'PRESENT' && (!existingSession || existingSession.attendance !== 'PRESENT')) {
+      const potentialCycles = await prisma.tuitionCycle.findMany({
+        where: { student_id: schedule.student_id, status: { in: ['UNPAID', 'PARTIAL'] } },
         orderBy: { start_date: 'asc' }
       });
 
-      if (activeCycle) {
-        let priceToAdd = 0;
-        
-        // If it's a general cycle (no subject), we need to look up the price of the specific subject taught
-        if (!activeCycle.subject || activeCycle.subject.trim() === '') {
-          const studentSubject = await prisma.studentSubject.findFirst({
-            where: {
-              student_id: schedule.student_id,
-              subject: subjectToUse
-            }
-          });
-          
-          if (studentSubject) {
-            priceToAdd = studentSubject.price_per_session;
-          } else {
-            // Fallback to student's default price
-            const student = await prisma.student.findUnique({
-              where: { id: schedule.student_id }
-            });
-            priceToAdd = student?.price_per_session || 0;
-          }
-        }
+      let activeCycle = potentialCycles.find(c => c.completed_sessions < c.total_sessions);
 
-        await prisma.tuitionCycle.update({
-          where: { id: activeCycle.id },
+      if (!activeCycle) {
+        const cycleCount = await prisma.tuitionCycle.count({ where: { student_id: schedule.student_id } });
+        activeCycle = await prisma.tuitionCycle.create({
           data: {
-            completed_sessions: {
-              increment: 1
-            },
-            ...(priceToAdd > 0 && {
-              total_amount: {
-                increment: priceToAdd
-              }
-            })
+            student_id: schedule.student_id,
+            name: 'Chu kỳ ' + (cycleCount + 1),
+            subject: null, 
+            start_date: new Date(),
+            total_sessions: 10,
+            price_per_session: 0,
+            total_amount: 0,
+            status: 'UNPAID',
+            completed_sessions: 0
           }
         });
       }
-    }
 
-    // Send email notification if there is any text feedback
-    if (content || strengths || weaknesses || attitude || understanding_level) {
-      const studentWithParent = await prisma.student.findUnique({
-        where: { id: schedule.student_id },
-        include: { parent: true }
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { tuition_cycle_id: activeCycle.id }
       });
 
-      if (studentWithParent?.parent?.email) {
-        let feedbackText = '';
-        if (content) feedbackText += `- Nội dung bài học: ${content}\n`;
-        if (understanding_level) feedbackText += `- Mức độ hiểu bài: ${understanding_level}\n`;
-        if (attitude) feedbackText += `- Thái độ học tập: ${attitude}\n`;
-        if (strengths) feedbackText += `- Điểm mạnh: ${strengths}\n`;
-        if (weaknesses) feedbackText += `- Cần cải thiện: ${weaknesses}\n`;
-
-        sendSessionFeedbackNotification(
-          studentWithParent.parent.email,
-          studentWithParent.name,
-          schedule.date,
-          feedbackText
-        ).catch(console.error);
+      let priceToAdd = 0;
+      const subjectToUse = actual_subject || schedule.subject;
+      const studentSubject = await prisma.studentSubject.findFirst({
+        where: { student_id: schedule.student_id, subject: subjectToUse }
+      });
+      if (studentSubject) {
+        priceToAdd = studentSubject.price_per_session;
+      } else {
+        const student = await prisma.student.findUnique({ where: { id: schedule.student_id } });
+        priceToAdd = student?.price_per_session || 0;
       }
+
+      await prisma.tuitionCycle.update({
+        where: { id: activeCycle.id },
+        data: {
+          completed_sessions: { increment: 1 },
+          ...(priceToAdd > 0 && { total_amount: { increment: priceToAdd } })
+        }
+      });
+    } else if (attendance !== 'PRESENT' && existingSession?.attendance === 'PRESENT' && existingSession.tuition_cycle_id) {
+      const cycle = await prisma.tuitionCycle.findUnique({ where: { id: existingSession.tuition_cycle_id } });
+      if (cycle) {
+        let priceToDeduct = 0;
+        const subjectToUse = actual_subject || schedule.subject;
+        const studentSubject = await prisma.studentSubject.findFirst({
+          where: { student_id: schedule.student_id, subject: subjectToUse }
+        });
+        if (studentSubject) {
+          priceToDeduct = studentSubject.price_per_session;
+        } else {
+          const student = await prisma.student.findUnique({ where: { id: schedule.student_id } });
+          priceToDeduct = student?.price_per_session || 0;
+        }
+
+        if (cycle.completed_sessions <= 1 && cycle.status === 'UNPAID') {
+          await prisma.tuitionCycle.delete({ where: { id: cycle.id } });
+        } else {
+          await prisma.tuitionCycle.update({
+            where: { id: cycle.id },
+            data: {
+              completed_sessions: { decrement: 1 },
+              total_amount: { decrement: priceToDeduct }
+            }
+          });
+        }
+      }
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { tuition_cycle_id: null }
+      });
+    }
+
+    try {
+      if (attendance === 'PRESENT' && (content || strengths || weaknesses || attitude || understanding_level)) {
+        const studentWithParent = await prisma.student.findUnique({
+          where: { id: schedule.student_id },
+          include: { parent: true }
+        });
+
+        if (studentWithParent?.parent?.email) {
+          let feedbackText = '';
+          if (content) feedbackText += `- Nội dung bài học: ${content}\n`;
+          if (understanding_level) feedbackText += `- Mức độ hiểu bài: ${understanding_level}\n`;
+          if (attitude) feedbackText += `- Thái độ học tập: ${attitude}\n`;
+          if (strengths) feedbackText += `- Điểm mạnh: ${strengths}\n`;
+          if (weaknesses) feedbackText += `- Cần cải thiện: ${weaknesses}\n`;
+
+          const { sendSessionFeedbackNotification } = require('../utils/mailer');
+          sendSessionFeedbackNotification(
+            studentWithParent.parent.email,
+            studentWithParent.name,
+            schedule.date,
+            feedbackText
+          ).catch(console.error);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to send email:', e);
     }
 
     res.json(session);

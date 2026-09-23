@@ -69,7 +69,7 @@ const AchievementManagement: React.FC = () => {
         </button>
       </div>
 
-      <div className="data-table-container glass-panel" style={{ marginTop: '2rem' }}>
+      <div className="data-table-container glass-panel">
         <table className="data-table">
           <thead>
             <tr>
@@ -103,9 +103,9 @@ const AchievementManagement: React.FC = () => {
                     <td>{new Date(ach.achieved_date).toLocaleDateString('vi-VN')}</td>
                     <td>
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                        <div>Điểm: <strong style={{ color: 'var(--primary)' }}>{metrics.avgScore.toFixed(1)}</strong></div>
-                        <div>Chuyên cần: <strong>{metrics.attendanceRate.toFixed(0)}%</strong></div>
-                        <div>Bài tập: <strong>{metrics.homeworkRate.toFixed(0)}%</strong></div>
+                        <div>Điểm: <strong style={{ color: 'var(--primary)' }}>{metrics.avgScore?.toFixed(1) || '—'}</strong></div>
+                        {metrics.attendanceRate !== undefined && <div>Chuyên cần: <strong>{metrics.attendanceRate?.toFixed(0) || '0'}%</strong></div>}
+                        {metrics.homeworkRate !== undefined && <div>Bài tập: <strong>{metrics.homeworkRate?.toFixed(0) || '0'}%</strong></div>}
                       </div>
                     </td>
                   </tr>

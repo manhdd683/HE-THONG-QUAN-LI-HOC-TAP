@@ -146,44 +146,52 @@ const ReportsPage: React.FC = () => {
   return (
     <div className="page-container reports-page">
       <div className="page-header no-print">
-        <div>
-          <h1>Báo Cáo Học Tập</h1>
-          <p>{user?.role === 'TUTOR' ? 'Tạo và in báo cáo kết quả học tập cho học sinh' : 'Xem báo cáo kết quả học tập từ gia sư'}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="icon-wrapper" style={{ background: 'rgba(31, 92, 78, 0.1)', color: 'var(--primary)', width: '48px', height: '48px', borderRadius: '12px' }}>
+            <FileText size={24} />
+          </div>
+          <div>
+            <h1>Báo Cáo Học Tập</h1>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--text-muted)', fontSize: '14px' }}>
+              {user?.role === 'TUTOR' ? 'Tạo và in báo cáo kết quả học tập cho học sinh' : 'Xem báo cáo kết quả học tập từ gia sư'}
+            </p>
+          </div>
         </div>
       </div>
 
       {user?.role === 'TUTOR' && (
-        <div className="report-controls glass-panel no-print">
-          <div className="control-group">
-            <label>Học sinh:</label>
+        <div className="report-controls glass-panel no-print" style={{ padding: '20px 24px', display: 'flex', alignItems: 'flex-end', gap: '16px', marginBottom: '32px' }}>
+          <div className="control-group" style={{ flex: 1 }}>
+            <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Học sinh</label>
             <select 
               className="form-input" 
               value={selectedStudent} 
               onChange={e => setSelectedStudent(e.target.value)}
+              style={{ width: '100%' }}
             >
               {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           
-          <div className="control-group">
-            <label>Tháng:</label>
-            <select className="form-input" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
+          <div className="control-group" style={{ flex: 1 }}>
+            <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Tháng</label>
+            <select className="form-input" value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ width: '100%' }}>
               {[...Array(12)].map((_, i) => (
                 <option key={i+1} value={i+1}>Tháng {i+1}</option>
               ))}
             </select>
           </div>
 
-          <div className="control-group">
-            <label>Năm:</label>
-            <select className="form-input" value={selectedYear} onChange={e => setSelectedYear(e.target.value)}>
+          <div className="control-group" style={{ flex: 1 }}>
+            <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Năm</label>
+            <select className="form-input" value={selectedYear} onChange={e => setSelectedYear(e.target.value)} style={{ width: '100%' }}>
               <option value="2026">2026</option>
               <option value="2027">2027</option>
             </select>
           </div>
 
-          <button className="btn-primary" onClick={handleGenerateReport} disabled={isLoading || !selectedStudent}>
-            <FileText size={18} />
+          <button className="btn-primary" onClick={handleGenerateReport} disabled={isLoading || !selectedStudent} style={{ padding: '12px 24px', height: '42px', flexShrink: 0 }}>
+            <FileText size={18} style={{ marginRight: '8px' }} />
             {isLoading ? 'Đang tạo...' : 'Tạo Báo Cáo Mới'}
           </button>
         </div>
@@ -191,27 +199,44 @@ const ReportsPage: React.FC = () => {
 
       {/* Report History Section */}
       {reportHistory.length > 0 && !reportData && (
-        <div className="history-section no-print" style={{ marginBottom: '24px' }}>
+        <div className="history-section no-print" style={{ marginBottom: '32px' }}>
           <h3 style={{ marginBottom: '16px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Clock size={20} /> Lịch sử Báo Cáo
+            <Clock size={20} color="var(--primary)" /> Lịch sử Báo Cáo
           </h3>
-          <div className="history-grid" style={{ display: 'grid', gap: '12px', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-            {reportHistory.map(history => (
-              <div key={history.id} className="history-card glass-panel" style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '4px solid var(--primary)' }} onClick={() => viewHistoryReport(history)}>
-                <div>
-                  <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: 'var(--text-main)' }}>{history.name}</h4>
-                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
-                    Học sinh: {history.student?.name}
-                  </p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
-                    Tạo ngày: {new Date(history.created_at).toLocaleDateString('vi-VN')}
-                  </p>
-                </div>
-                <div style={{ color: 'var(--primary)' }}>
-                  <ChevronRight size={20} />
-                </div>
-              </div>
-            ))}
+          
+          <div className="data-table-container glass-panel">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Tên báo cáo</th>
+                  <th>Học sinh</th>
+                  <th>Ngày tạo</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reportHistory.map(history => (
+                  <tr key={history.id}>
+                    <td>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ width: '32px', height: '32px', background: 'rgba(31,92,78,0.1)', color: 'var(--primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <FileText size={16} />
+                        </div>
+                        {history.name}
+                      </div>
+                    </td>
+                    <td>{students.find(s => s.id === history.student_id)?.name || history.student_id}</td>
+                    <td>{new Date(history.created_at).toLocaleDateString('vi-VN')}</td>
+                    <td>
+                      <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '13px' }} onClick={() => viewHistoryReport(history)}>
+                        <BookOpen size={14} style={{ marginRight: '6px' }} />
+                        Xem chi tiết
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

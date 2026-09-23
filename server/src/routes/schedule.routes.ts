@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticateToken } from '../middlewares/auth.middleware';
-import { getSchedules, createSchedule, updateScheduleStatus, markAttendance, updateSchedule, deleteSchedule } from '../controllers/schedule.controller';
+import { getSchedules, createSchedule, updateScheduleStatus, markAttendance, updateSchedule, deleteSchedule, deleteAttendance } from '../controllers/schedule.controller';
 
 const router = Router();
 
@@ -12,5 +12,6 @@ router.put('/:id', updateSchedule);
 router.delete('/:id', deleteSchedule);
 router.patch('/:id/status', updateScheduleStatus);
 router.post('/:schedule_id/attendance', markAttendance);
+router.delete('/:schedule_id/attendance', deleteAttendance);
 
 export default router;

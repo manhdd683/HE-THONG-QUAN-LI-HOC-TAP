@@ -114,3 +114,19 @@ export const sendSessionFeedbackNotification = async (parentEmail: string, stude
   `;
   return sendEmail(parentEmail, subject, html);
 };
+
+export const sendScoreBoardNotification = async (parentEmail: string, studentName: string, subjectName: string) => {
+  const subject = `[Thông báo] Bảng điểm môn ${subjectName} của học sinh ${studentName} đã được cập nhật`;
+  const html = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
+      <h2 style="color: #1F5C4E;">Bảng điểm Mới được Công bố</h2>
+      <p>Kính gửi Phụ huynh,</p>
+      <p>Gia sư vừa công bố bảng điểm mới môn <strong>${subjectName}</strong> của học sinh <strong>${studentName}</strong>.</p>
+      <div style="background-color: #FAF7F0; padding: 15px; border-left: 4px solid #E08E45; margin: 15px 0;">
+        <p style="margin: 0;">Phụ huynh vui lòng đăng nhập vào hệ thống để xem chi tiết điểm số, nhận xét và quá trình học tập của con em mình.</p>
+      </div>
+      <p>Trân trọng,<br>Hệ thống Quản lý Học tập</p>
+    </div>
+  `;
+  return sendEmail(parentEmail, subject, html);
+};

@@ -37,7 +37,7 @@ const ScoresPage: React.FC = () => {
       </div>
 
       {user?.role === 'PARENT' ? (
-        <div style={{ marginTop: '2rem' }}>
+        <div>
           {isLoading ? (
             <p style={{ textAlign: 'center', padding: '2rem' }}>Đang tải dữ liệu...</p>
           ) : students.length === 0 ? (

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Plus, DollarSign, ReceiptText } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import TuitionForm from './TuitionForm';
 import PaymentForm from './PaymentForm';
+import TuitionDetailModal from './TuitionDetailModal';
 
 export interface TuitionCycle {
   id: string;
@@ -26,8 +28,10 @@ const TuitionList: React.FC = () => {
   const [cycles, setCycles] = useState<TuitionCycle[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState<TuitionCycle | null>(null);
   const { user } = useAuth();
+  const { showInfo } = useToast();
 
   const fetchCycles = async () => {
     try {
@@ -89,15 +93,17 @@ const TuitionList: React.FC = () => {
                 <tr key={cycle.id}>
                   <td>{cycle.student.name}</td>
                   <td>
-                    <strong>{cycle.name}</strong>
-                    {cycle.subject ? (
-                      <span style={{ marginLeft: '8px', padding: '2px 8px', background: 'var(--glass-border)', borderRadius: '12px', fontSize: '12px', color: 'var(--text-main)' }}>Môn: {cycle.subject}</span>
-                    ) : (
-                      <span style={{ marginLeft: '8px', padding: '2px 8px', background: 'var(--accent)', color: 'white', borderRadius: '12px', fontSize: '12px' }}>Tất cả các môn</span>
-                    )}
-                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
-                      Từ: {new Date(cycle.start_date).toLocaleDateString('vi-VN')}
-                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                      <strong style={{ whiteSpace: 'nowrap' }}>{cycle.name}</strong>
+                      {cycle.subject ? (
+                        <span className="subject-badge">{cycle.subject}</span>
+                      ) : (
+                        <span className="subject-badge empty">Tất cả các môn</span>
+                      )}
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                        Từ: {new Date(cycle.start_date).toLocaleDateString('vi-VN')}
+                      </span>
+                    </div>
                   </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -131,7 +137,7 @@ const TuitionList: React.FC = () => {
                         </button>
                       )}
                       
-                      <button className="btn-icon" title="Hóa đơn / Chi tiết">
+                      <button className="btn-icon" title="Hóa đơn / Chi tiết" onClick={() => { setSelectedCycle(cycle); setIsDetailOpen(true); }}>
                         <ReceiptText size={18} />
                       </button>
                     </div>
@@ -155,6 +161,13 @@ const TuitionList: React.FC = () => {
           cycle={selectedCycle}
           onClose={() => setIsPaymentOpen(false)}
           onSuccess={fetchCycles}
+        />
+      )}
+
+      {isDetailOpen && selectedCycle && (
+        <TuitionDetailModal
+          cycle={selectedCycle}
+          onClose={() => setIsDetailOpen(false)}
         />
       )}
     </div>

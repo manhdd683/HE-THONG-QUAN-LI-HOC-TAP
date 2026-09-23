@@ -71,84 +71,46 @@ export const evaluateAchievements = async (req: Request, res: Response) => {
     let generatedCount = 0;
 
     for (const student of students) {
-      // Get the last evaluation date or start of time
-      const lastAchievement = await prisma.achievement.findFirst({
-        where: { student_id: student.id },
-        orderBy: { achieved_date: 'desc' }
-      });
-
-      const dateFilter = lastAchievement ? { gt: lastAchievement.achieved_date } : undefined;
-
-      // Get completed sessions since last achievement
-      const sessions = await prisma.session.findMany({
+      // Get all approved scoreboards for this student
+      const scoreboards = await prisma.subjectScoreBoard.findMany({
         where: {
-          schedule: {
-            student_id: student.id,
-            status: 'COMPLETED',
-            date: dateFilter
-          }
-        },
-        include: {
-          schedule: true
-        },
-        orderBy: {
-          schedule: { date: 'asc' }
+          student_id: student.id,
+          is_approved: true,
+          average_score: { gte: 5.0 } // Passed
         }
       });
 
-      // We only evaluate if there are at least 10 sessions completed since last achievement
-      if (sessions.length >= 10) {
-        // Take exactly the first 10 to evaluate
-        const evalSessions = sessions.slice(0, 10);
-        
-        // 1. Calculate Attendance
-        const presentCount = evalSessions.filter(s => s.attendance === 'PRESENT').length;
-        const attendanceRate = (presentCount / 10) * 100;
-
-        // 2. Calculate Homework Rate & Score
-        const startDate = evalSessions[0].schedule.date;
-        const endDate = evalSessions[9].schedule.date;
-
-        const homeworks = await prisma.homework.findMany({
+      for (const board of scoreboards) {
+        // Check if an achievement for this scoreboard already exists
+        const existing = await prisma.achievement.findFirst({
           where: {
             student_id: student.id,
-            due_date: {
-              gte: startDate,
-              lte: endDate
-            }
+            title: { contains: board.subject }
           }
         });
 
-        const totalHomeworks = homeworks.length;
-        let submittedHomeworks = 0;
-        let totalScore = 0;
-        let gradedCount = 0;
-
-        homeworks.forEach(hw => {
-          if (hw.status === 'SUBMITTED' || hw.status === 'GRADED') {
-            submittedHomeworks++;
+        if (!existing) {
+          // Generate certificate based on score
+          let title = `Hoàn thành môn ${board.subject}`;
+          let description = `Học sinh đã hoàn thành chương trình môn ${board.subject} với điểm trung bình ${board.average_score?.toFixed(1)}.`;
+          
+          if (board.average_score && board.average_score >= 8.0) {
+            title = `Xuất sắc môn ${board.subject}`;
+            description = `Học sinh đạt thành tích xuất sắc môn ${board.subject} với điểm trung bình ${board.average_score?.toFixed(1)}.`;
           }
-          if (hw.score !== null) {
-            totalScore += hw.score;
-            gradedCount++;
-          }
-        });
 
-        const homeworkRate = totalHomeworks > 0 ? (submittedHomeworks / totalHomeworks) * 100 : 100; // if no homework assigned, default 100%
-        const avgScore = gradedCount > 0 ? (totalScore / gradedCount) : 10.0; // if no graded homework, default 10
+          const metrics = JSON.stringify({
+            scoreboard_id: board.id,
+            subject: board.subject,
+            avgScore: board.average_score
+          });
 
-        // Check conditions
-        if (attendanceRate >= 90 && homeworkRate >= 92 && avgScore >= 8.0) {
           await prisma.achievement.create({
             data: {
               student_id: student.id,
-              title: 'Học sinh Xuất sắc',
-              description: `Hoàn thành 10 buổi học với thành tích xuất sắc.`,
-              metrics: JSON.stringify({
-                attendanceRate,
-                homeworkRate,
-                avgScore
-              }),
+              title,
+              description,
+              metrics,
               achieved_date: new Date()
             }
           });

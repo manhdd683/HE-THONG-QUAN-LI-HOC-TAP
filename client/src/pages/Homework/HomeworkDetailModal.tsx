@@ -31,7 +31,7 @@ const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({ homework, onC
               </div>
             </div>
             {homework.score !== null && (
-              <div style={{ textAlign: 'center', background: 'var(--glass-bg)', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+              <div style={{ textAlign: 'center', background: 'rgba(0,0,0,0.02)', padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.05)' }}>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Điểm số</span>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>{homework.score}<span style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>/10</span></div>
               </div>
@@ -39,7 +39,7 @@ const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({ homework, onC
           </div>
 
           {/* Details list */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'var(--glass-bg)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--glass-border)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(0,0,0,0.02)', padding: '1.25rem', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.05)' }}>
             
             <div style={{ display: 'flex', gap: '1rem' }}>
               <FileText size={20} color="var(--text-muted)" style={{ flexShrink: 0 }} />
@@ -81,7 +81,7 @@ const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({ homework, onC
                                 <FileText size={16} color="var(--primary)" />
                                 <span>{att.title}</span>
                               </div>
-                              <a href={att.url} target="_blank" rel="noreferrer" className="btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <a href={att.url} target="_blank" rel="noreferrer" className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <Download size={14} /> Tải xuống
                               </a>
                             </div>

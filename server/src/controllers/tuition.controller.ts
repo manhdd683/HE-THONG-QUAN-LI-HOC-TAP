@@ -40,9 +40,45 @@ export const getTuitionCycles = async (req: Request, res: Response) => {
   }
 };
 
+export const getUnbilledSessions = async (req: Request, res: Response) => {
+  try {
+    const student_id = String(req.params.student_id);
+    const user = (req as any).user;
+
+    // Check auth
+    if (user.role === 'TUTOR') {
+      const student = await prisma.student.findUnique({ where: { id: student_id } });
+      if (student?.tutor_id !== user.id) {
+        return res.status(403).json({ error: 'Not authorized for this student' });
+      }
+    }
+
+    // Find all unbilled sessions for this student
+    const unbilledSessions = await prisma.session.findMany({
+      where: {
+        schedule: {
+          student_id: student_id
+        },
+        tuition_cycle_id: null,
+        attendance: {
+          in: ['PRESENT', 'MAKE_UP']
+        }
+      },
+      include: {
+        schedule: true
+      }
+    });
+
+    res.json(unbilledSessions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch unbilled sessions' });
+  }
+};
+
 export const createTuitionCycle = async (req: Request, res: Response) => {
   try {
-    const { student_id, name, subject, total_sessions, price_per_session } = req.body;
+    const { student_id, name, subject, total_sessions, price_per_session, total_amount: custom_total_amount, session_ids } = req.body;
     
     // Check if student belongs to tutor
     const user = (req as any).user;
@@ -58,26 +94,59 @@ export const createTuitionCycle = async (req: Request, res: Response) => {
     let total_amount = 0;
     
     if (subject && subject.trim() !== '') {
-      final_price = parseFloat(price_per_session) || 0;
-      total_amount = parseInt(total_sessions) * final_price;
+      if (custom_total_amount !== undefined) {
+        total_amount = parseFloat(custom_total_amount);
+        final_price = parseFloat(price_per_session) || 0;
+      } else {
+        final_price = parseFloat(price_per_session) || 0;
+        total_amount = parseInt(total_sessions) * final_price;
+      }
     }
 
-    const cycle = await prisma.tuitionCycle.create({
-      data: {
-        student_id,
-        name,
-        subject: subject || null,
-        start_date: new Date(),
-        total_sessions: parseInt(total_sessions),
-        price_per_session: final_price,
-        total_amount,
-        status: 'UNPAID'
-      },
-      include: {
-        student: true
-      }
-    });
-    res.status(201).json(cycle);
+    // Create Cycle and update Sessions in transaction if session_ids provided
+    if (session_ids && Array.isArray(session_ids) && session_ids.length > 0) {
+      const [cycle] = await prisma.$transaction([
+        prisma.tuitionCycle.create({
+          data: {
+            student_id,
+            name,
+            subject: subject || null,
+            start_date: new Date(),
+            total_sessions: parseInt(total_sessions),
+            price_per_session: final_price,
+            total_amount,
+            status: 'UNPAID'
+          },
+          include: { student: true }
+        }),
+        // Cannot pass cycle.id yet, so we have to do it in a weird way, or use nested create
+        // Wait, nested create doesn't work easily to update existing relations that way.
+        // Let's do it outside transaction or use an interactive transaction.
+      ]);
+      // Just update them after creation
+      await prisma.session.updateMany({
+        where: { id: { in: session_ids } },
+        data: { tuition_cycle_id: cycle.id }
+      });
+      res.status(201).json(cycle);
+    } else {
+      const cycle = await prisma.tuitionCycle.create({
+        data: {
+          student_id,
+          name,
+          subject: subject || null,
+          start_date: new Date(),
+          total_sessions: parseInt(total_sessions),
+          price_per_session: final_price,
+          total_amount,
+          status: 'UNPAID'
+        },
+        include: {
+          student: true
+        }
+      });
+      res.status(201).json(cycle);
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to create tuition cycle' });

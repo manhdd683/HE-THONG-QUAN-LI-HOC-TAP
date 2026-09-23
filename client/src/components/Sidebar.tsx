@@ -15,6 +15,7 @@ import {
   Award
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import AppLogo from './AppLogo';
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -45,15 +46,17 @@ const Sidebar = () => {
   ];
 
   const links = user?.role === 'TUTOR' ? tutorLinks : parentLinks;
-  const appName = user?.role === 'TUTOR' ? 'Tutor Panel' : 'Phụ Huynh';
+  const appName = 'EduManager';
 
   return (
     <div className="sidebar">
-      <div className="sidebar-header">
-        <div className="sidebar-logo-icon">
-          <GraduationCap size={18} />
+      <div className="sidebar-header" style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+        <div style={{ flexShrink: 0 }}>
+          <AppLogo size={42} />
         </div>
-        <h2>{appName}</h2>
+        <h2 style={{ fontSize: '15px', fontWeight: '800', margin: 0, color: '#161c32', letterSpacing: '0.2px', textTransform: 'uppercase', lineHeight: 1.3 }}>
+          HỆ THỐNG<br/>GIÁO DỤC
+        </h2>
       </div>
 
       <nav className="sidebar-nav">

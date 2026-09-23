@@ -10,6 +10,7 @@ import scheduleRoutes from './routes/schedule.routes';
 import homeworkRoutes from './routes/homework.routes';
 import tuitionRoutes from './routes/tuition.routes';
 import reportRoutes from './routes/report.routes';
+import scoreboardRoutes from './routes/scoreboard.routes';
 import uploadRoutes from './routes/upload.routes';
 import achievementRoutes from './routes/achievement.routes';
 
@@ -32,6 +33,7 @@ app.use('/api/schedules', scheduleRoutes);
 app.use('/api/homework', homeworkRoutes);
 app.use('/api/tuition', tuitionRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/scoreboards', scoreboardRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/achievements', achievementRoutes);
 

@@ -62,7 +62,7 @@ const SubjectScoreDetails: React.FC = () => {
         </div>
       </div>
 
-      <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '2rem' }}>
+      <div className="glass-panel" style={{ padding: '1.5rem' }}>
         {isLoading ? (
           <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Đang tải...</p>
         ) : scores.length === 0 ? (

@@ -18,6 +18,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose, onSuccess }
     parent_name: '',
     parent_email: '',
     parent_phone: '',
+    parent_password: '',
     dob: '',
     gender: 'Nam',
     school: '',
@@ -200,9 +201,10 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onClose, onSuccess }
                   <label style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Số điện thoại</label>
                   <input type="tel" name="parent_phone" className="form-input" value={formData.parent_phone} onChange={handleChange} placeholder="VD: 0912345678" />
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
-                  * Mật khẩu đăng nhập mặc định cho phụ huynh mới sẽ là: <strong>123456</strong>
-                </p>
+                <div>
+                  <label style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px', display: 'block' }}>Mật khẩu đăng nhập *</label>
+                  <input type="text" name="parent_password" className="form-input" value={formData.parent_password} onChange={handleChange} required placeholder="Nhập mật khẩu cho phụ huynh..." />
+                </div>
               </div>
             )}
           </div>

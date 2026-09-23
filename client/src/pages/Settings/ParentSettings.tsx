@@ -36,7 +36,7 @@ const ParentSettings: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', marginTop: '2rem', maxWidth: '800px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', maxWidth: '800px' }}>
         
         {/* Email Settings */}
         <div className="glass-panel" style={{ padding: '2rem' }}>

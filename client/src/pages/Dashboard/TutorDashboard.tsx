@@ -122,7 +122,10 @@ const TutorDashboard: React.FC = () => {
       <div className="dash-welcome">
         <div className="dash-welcome-text" style={{ flex: 1 }}>
           <h1>Xin chào, {user?.name}</h1>
-          <p style={{ marginTop: '8px' }}>Hôm nay là {today}. Chúc bạn một ngày dạy học hiệu quả và tràn đầy năng lượng!</p>
+          <p style={{ marginTop: '8px' }}>
+            Hôm nay là {today}.<br />
+            Chúc bạn một ngày dạy học hiệu quả và tràn đầy năng lượng!
+          </p>
           <div style={{ marginTop: '20px' }}>
             <button className="btn-primary" onClick={() => navigate('/tutor/schedule')}>
               <Plus size={18} /> Tạo buổi học mới
@@ -353,8 +356,8 @@ const TutorDashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* REPORTS FULL WIDTH */}
-        <div className="dash-section glass-panel dash-full-width">
+        {/* REPORTS */}
+        <div className="dash-section glass-panel">
           <div className="dash-section-header">
             <span className="dash-section-title">
               <span className="icon-wrapper" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}><FileText size={15} /></span>
@@ -371,25 +374,24 @@ const TutorDashboard: React.FC = () => {
                 <line x1="16" y1="17" x2="8" y2="17"/>
                 <polyline points="10 9 9 9 8 9"/>
               </svg>
-              <span>Chưa có báo cáo nào được tạo</span>
-              <button className="btn-secondary" onClick={() => navigate('/tutor/reports')} style={{ marginTop: 8 }}>Tạo báo cáo ngay</button>
+              <span>Chưa có báo cáo nào</span>
             </div>
-          ) : (
-            <div className="dash-report-grid">
-              {data.recentReports.map(r => (
-                <div key={r.id} className="dash-report-card clickable" onClick={() => navigate('/tutor/reports')}>
-                  <div className="dash-report-icon"><FileText size={18} /></div>
-                  <div>
-                    <div className="dash-item-title">Báo cáo học tập</div>
-                    <div className="dash-item-sub">{r.student?.name}</div>
-                    <div className="dash-item-sub" style={{ fontSize: 12, marginTop: 4 }}>
-                      Tạo: {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(r.created_at))}
-                    </div>
-                  </div>
+          ) : data.recentReports.map(r => (
+            <div key={r.id} className="dash-item clickable" onClick={() => navigate('/tutor/reports')}>
+              <div className="dash-item-avatar" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}><FileText size={18} /></div>
+              <div className="dash-item-content">
+                <div className="dash-item-title">{r.student?.name}</div>
+                <div className="dash-item-sub">
+                  Báo cáo học tập
                 </div>
-              ))}
+              </div>
+              <div className="dash-item-right">
+                <div className="dash-item-time" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  {new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short' }).format(new Date(r.created_at))}
+                </div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>

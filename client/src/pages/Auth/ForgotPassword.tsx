@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../utils/api';
+import AppLogo from '../../components/AppLogo';
+import { useToast } from '../../context/ToastContext';
 
 
 const ForgotPassword: React.FC = () => {
@@ -9,24 +11,21 @@ const ForgotPassword: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
+  const { showError, showSuccess } = useToast();
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
     setIsLoading(true);
 
     try {
       const response = await api.post('/auth/forgot-password', { email });
-      setMessage(response.data.message);
+      showSuccess(response.data.message || 'Mã OTP đã được gửi đến email của bạn');
       setStep(2);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Đã có lỗi xảy ra.');
+      showError(err.response?.data?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -34,11 +33,9 @@ const ForgotPassword: React.FC = () => {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
     
     if (newPassword !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+      showError('Mật khẩu xác nhận không khớp');
       return;
     }
 
@@ -51,12 +48,12 @@ const ForgotPassword: React.FC = () => {
         newPassword
       });
       
-      setMessage(response.data.message);
+      showSuccess(response.data.message || 'Đặt lại mật khẩu thành công');
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Đã có lỗi xảy ra.');
+      showError(err.response?.data?.message || 'Đã có lỗi xảy ra. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -65,6 +62,9 @@ const ForgotPassword: React.FC = () => {
   return (
     <div className="auth-container">
       <div className="auth-card glass-panel">
+        <div className="auth-logo">
+          <AppLogo size={80} />
+        </div>
         <div className="auth-header">
           <h1>Quên mật khẩu</h1>
           <p>{step === 1 ? 'Nhập email để nhận mã OTP' : 'Nhập mã OTP và mật khẩu mới'}</p>
@@ -88,9 +88,6 @@ const ForgotPassword: React.FC = () => {
             <button type="submit" className="auth-button btn-primary" disabled={isLoading}>
               {isLoading ? 'Đang gửi...' : 'Gửi mã OTP'}
             </button>
-            <div className="auth-footer">
-              <Link to="/login" className="forgot-link">Quay lại đăng nhập</Link>
-            </div>
           </form>
         ) : (
           <form onSubmit={handleResetPassword} className="auth-form">
@@ -98,6 +95,7 @@ const ForgotPassword: React.FC = () => {
               <label>Mã OTP</label>
               <input
                 type="text"
+                className="form-input"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 required
@@ -109,6 +107,7 @@ const ForgotPassword: React.FC = () => {
               <label>Mật khẩu mới</label>
               <input
                 type="password"
+                className="form-input"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -119,6 +118,7 @@ const ForgotPassword: React.FC = () => {
               <label>Xác nhận mật khẩu</label>
               <input
                 type="password"
+                className="form-input"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -133,9 +133,6 @@ const ForgotPassword: React.FC = () => {
             </button>
           </form>
         )}
-
-        {message && <div style={{ color: 'var(--success)', textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem' }}>{message}</div>}
-        {error && <div className="error-message">{error}</div>}
 
         <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
           <Link to="/login" className="auth-link">Quay lại Đăng nhập</Link>

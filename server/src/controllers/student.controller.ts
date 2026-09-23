@@ -57,7 +57,7 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
     const { 
       name, parent_id, dob, gender, 
       school, grade, student_subjects, start_date,
-      parentMode, parent_name, parent_email, parent_phone
+      parentMode, parent_name, parent_email, parent_phone, parent_password
     } = req.body;
     
     let finalParentId = parent_id;
@@ -73,8 +73,12 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: 'Email phụ huynh đã tồn tại trong hệ thống. Vui lòng chọn phụ huynh có sẵn.' });
       }
 
+      if (!parent_password || parent_password.trim() === '') {
+        return res.status(400).json({ message: 'Vui lòng cung cấp mật khẩu cho phụ huynh mới' });
+      }
+
       const bcrypt = require('bcryptjs');
-      const password_hash = await bcrypt.hash('123456', 10);
+      const password_hash = await bcrypt.hash(parent_password, 10);
 
       const newParent = await prisma.user.create({
         data: {
@@ -136,7 +140,7 @@ export const createStudent = async (req: AuthRequest, res: Response) => {
 
     res.status(201).json(student);
   } catch (error: any) {
-    console.error(error);
+    console.error('Error creating student:', error);
     if (error.code === 'P2002') {
       return res.status(400).json({ message: 'Mã học sinh đã tồn tại' });
     }

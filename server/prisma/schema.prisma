@@ -59,6 +59,7 @@ model Student {
   documents     Document[]
   reports       ReportHistory[]
   student_subjects StudentSubject[]
+  score_boards  SubjectScoreBoard[]
   activity_logs ActivityLog[]
   achievements  Achievement[]
 
@@ -123,10 +124,14 @@ model Session {
   
   attendance    String    // PRESENT, ABSENT, EXCUSED, MAKE_UP
   content       String?
+  record_link   String?
   
   // Relations
   scores        Score[]
   comments      Comment[]
+
+  tuition_cycle_id String?
+  tuition_cycle TuitionCycle? @relation(fields: [tuition_cycle_id], references: [id])
 
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
@@ -146,6 +151,29 @@ model Score {
 
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
+}
+
+model SubjectScoreBoard {
+  id            String    @id @default(uuid())
+  student_id    String
+  student       Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  
+  subject       String
+  
+  daily_score   Float?
+  homework_1    Float?
+  homework_2    Float?
+  quiz_1        Float?
+  quiz_2        Float?
+  final_score   Float?
+  
+  average_score Float?
+  is_approved   Boolean   @default(false)
+  
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  @@unique([student_id, subject])
 }
 
 model ScoreHistory {
@@ -241,6 +269,7 @@ model TuitionCycle {
   due_date      DateTime?
   
   payments      Payment[]
+  sessions      Session[]
 
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt

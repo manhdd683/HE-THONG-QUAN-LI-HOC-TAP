@@ -37,32 +37,33 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
       {children}
       
       {/* GLOBAL TOAST RENDERER */}
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        zIndex: 9999
-      }}>
-        {toasts.map((toast) => (
-          <div key={toast.id} style={{
-            backgroundColor: toast.type === 'success' ? 'var(--success)' : 'var(--danger)',
-            color: '#fff',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            animation: 'slideIn 0.3s ease-out'
-          }}>
-            {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-            {toast.text}
-          </div>
-        ))}
+      <div className="toast-container">
+        {toasts.map((toast) => {
+          const duration = toast.type === 'success' ? 3000 : 5000;
+          return (
+            <div key={toast.id} className="toast-item">
+              <button 
+                className="toast-close" 
+                onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+              >
+                <AlertCircle size={14} style={{ opacity: 0 }} /> {/* Placeholder, use actual X icon if imported, else just HTML entity */}
+                <span style={{ position: 'absolute' }}>×</span>
+              </button>
+              <div className="toast-content">
+                <div className={`toast-icon ${toast.type}`}>
+                  {toast.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                </div>
+                <div className="toast-message">
+                  {toast.text}
+                </div>
+              </div>
+              <div 
+                className={`toast-progress ${toast.type}`} 
+                style={{ animationDuration: `${duration}ms` }}
+              ></div>
+            </div>
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );

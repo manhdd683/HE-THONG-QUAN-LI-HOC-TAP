@@ -20,7 +20,8 @@ const AttendanceForm: React.FC<AttendanceFormProps> = ({ schedule, onClose, onSu
     understanding_level: existingComment?.understanding_level || '',
     attitude: existingComment?.attitude || '',
     strengths: existingComment?.strengths || '',
-    weaknesses: existingComment?.weaknesses || ''
+    weaknesses: existingComment?.weaknesses || '',
+    record_link: schedule.session?.record_link || ''
   });
   const [studentSubjects, setStudentSubjects] = useState<any[]>([]);
   const [error, setError] = useState('');
@@ -111,6 +112,20 @@ const AttendanceForm: React.FC<AttendanceFormProps> = ({ schedule, onClose, onSu
             </div>
             <textarea name="content" value={formData.content} onChange={handleChange} rows={2} placeholder="Nhập hoặc chọn mẫu nội dung..."></textarea>
           </div>
+
+          {schedule.format === 'ONLINE' && (
+            <div className="form-group">
+              <label>Link Record bài học (Tùy chọn)</label>
+              <input 
+                type="url" 
+                name="record_link" 
+                value={formData.record_link} 
+                onChange={handleChange} 
+                placeholder="VD: https://meet.google.com/..." 
+                className="form-input" 
+              />
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="form-group">

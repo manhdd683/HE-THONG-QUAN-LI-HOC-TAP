@@ -35,6 +35,8 @@ const HomeworkList: React.FC = () => {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedHomework, setSelectedHomework] = useState<Homework | null>(null);
   const [selectedDetailHomework, setSelectedDetailHomework] = useState<Homework | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
 
@@ -67,6 +69,28 @@ const HomeworkList: React.FC = () => {
     }
   };
 
+  const statusPriority: Record<string, number> = {
+    PENDING: 1,
+    SUBMITTED: 2,
+    GRADED: 3,
+  };
+
+  const sortedHomeworks = [...homeworks].sort((a, b) => {
+    const pA = statusPriority[a.status] || 99;
+    const pB = statusPriority[b.status] || 99;
+    if (pA !== pB) return pA - pB;
+    return new Date(b.due_date || 0).getTime() - new Date(a.due_date || 0).getTime();
+  });
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentHomeworks = sortedHomeworks.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedHomeworks.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -96,17 +120,17 @@ const HomeworkList: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {homeworks.length === 0 ? (
+            {currentHomeworks.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Chưa có bài tập nào</td>
               </tr>
             ) : (
-              homeworks.map(hw => (
+              currentHomeworks.map(hw => (
                 <tr key={hw.id}>
                   <td>{hw.student.name}</td>
                   <td>
                     {hw.subject ? (
-                      <span className="badge" style={{ background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '12px' }}>
+                      <span className="badge" style={{ background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', whiteSpace: 'nowrap', display: 'inline-block' }}>
                         {hw.subject}
                       </span>
                     ) : (
@@ -132,24 +156,24 @@ const HomeworkList: React.FC = () => {
                     ) : '-'}
                   </td>
                   <td>
-                    <div className="action-buttons">
+                    <div className="action-buttons" style={{ display: 'flex', gap: '8px', flexWrap: 'nowrap' }}>
                       {user?.role === 'TUTOR' && (hw.status === 'PENDING' || hw.status === 'SUBMITTED') && (
-                        <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => handleGrade(hw)}>
-                          <CheckSquare size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                        <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }} onClick={() => handleGrade(hw)}>
+                          <CheckSquare size={14} style={{ marginRight: '4px' }} />
                           Chấm điểm
                         </button>
                       )}
                       
                       {user?.role === 'PARENT' && hw.status === 'PENDING' && (
-                         <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--secondary)' }} onClick={() => handleSubmit(hw.id)}>
-                         <Send size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-                         Nộp bài (Demo)
+                         <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', background: 'var(--secondary)', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center' }} onClick={() => handleSubmit(hw.id)}>
+                         <Send size={14} style={{ marginRight: '4px' }} />
+                         Nộp bài
                        </button>
                       )}
                       
                       <button 
                         className="btn-secondary" 
-                        style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }} 
+                        style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }} 
                         onClick={() => { setSelectedDetailHomework(hw); setDetailModalOpen(true); }}
                       >
                         <FileText size={14} />
@@ -162,6 +186,31 @@ const HomeworkList: React.FC = () => {
             )}
           </tbody>
         </table>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', gap: '0.5rem', borderTop: '1px solid #eee' }}>
+            <button 
+              className="btn-secondary" 
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              style={{ padding: '4px 12px', fontSize: '14px' }}
+            >
+              Trang trước
+            </button>
+            <span style={{ margin: '0 1rem', fontSize: '14px', color: 'var(--text-muted)' }}>
+              Trang {currentPage} / {totalPages}
+            </span>
+            <button 
+              className="btn-secondary" 
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              style={{ padding: '4px 12px', fontSize: '14px' }}
+            >
+              Trang sau
+            </button>
+          </div>
+        )}
       </div>
 
       {isFormOpen && (
