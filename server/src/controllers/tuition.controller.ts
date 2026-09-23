@@ -214,3 +214,17 @@ export const recordPayment = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to record payment' });
   }
 };
+
+export const getStudentTuitionCycles = async (req: Request, res: Response) => {
+  try {
+    const studentId = req.params.studentId as string;
+    const cycles = await prisma.tuitionCycle.findMany({
+      where: { student_id: studentId },
+      orderBy: { start_date: 'desc' }
+    });
+    res.json(cycles);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch student cycles' });
+  }
+};

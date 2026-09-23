@@ -701,3 +701,228 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .main-content, .page-content, body { background: white !important; }
   .report-section { box-shadow: none !important; border: 1px solid #ddd !important; }
 }
+/* Professional Report CSS */
+.professional-report {
+  background: white;
+  color: black;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-top: 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.pr-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid #1f5c4e;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.pr-logo h1 {
+  margin: 0;
+  color: #1f5c4e;
+  font-size: 24px;
+}
+
+.pr-logo p {
+  margin: 4px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.pr-title-area {
+  text-align: right;
+}
+
+.pr-title {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.pr-subtitle {
+  margin: 8px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.pr-section {
+  margin-bottom: 30px;
+}
+
+.pr-section-title {
+  font-size: 16px;
+  color: #1f5c4e;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.pr-info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pr-info-table td {
+  padding: 8px 0;
+}
+
+.pr-label {
+  color: #666;
+  width: 150px;
+}
+
+.pr-value {
+  color: #333;
+}
+
+.pr-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.pr-overview-box {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pr-box-highlight {
+  background: rgba(31, 92, 78, 0.05);
+  border-color: rgba(31, 92, 78, 0.2);
+}
+
+.pr-box-title {
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.pr-progress-container {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.pr-progress-bar {
+  height: 100%;
+  background: #1f5c4e;
+}
+
+.pr-progress-alt {
+  background: #f59e0b;
+}
+
+.pr-box-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #666;
+}
+
+.pr-score-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1f5c4e;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.pr-rank {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.pr-data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pr-data-table th,
+.pr-data-table td {
+  border: 1px solid #e9ecef;
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.pr-data-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #555;
+}
+
+.pr-status {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pr-status.present,
+.pr-status.graded {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.pr-status.absent {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.pr-status.late,
+.pr-status.submitted {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.pr-empty-text {
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.pr-footer {
+  margin-top: 50px;
+  display: flex;
+  justify-content: space-between;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.pr-signature {
+  text-align: center;
+}
+
+.pr-signature p {
+  color: #666;
+  margin-bottom: 60px;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .page-container {
+    padding: 0 !important;
+    background: white !important;
+  }
+  
+  .professional-report {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

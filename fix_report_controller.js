@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
-import prisma from '../prisma';
+﻿const fs = require('fs');
+const file = 'server/src/controllers/report.controller.ts';
+let content = fs.readFileSync(file, 'utf8');
 
-export const getStudentReport = async (req: Request, res: Response) => {
+const newFunc = `export const getStudentReport = async (req: Request, res: Response) => {
   try {
     const studentId = req.params.studentId as string;
     const { cycleId } = req.query;
@@ -58,7 +59,12 @@ export const getStudentReport = async (req: Request, res: Response) => {
 
     // Get scoreboards instead of homework
     const scoreboards = await prisma.subjectScoreBoard.findMany({
-      where: { student_id: studentId }
+      where: { student_id: studentId },
+      include: {
+        scores: {
+          include: { score_type: true }
+        }
+      }
     });
 
     // We don't have homework rate anymore, we'll just base it on the scoreboards average
@@ -85,7 +91,7 @@ export const getStudentReport = async (req: Request, res: Response) => {
     sessions.forEach(s => {
       s.comments.forEach((c: any) => {
         if (c.content) allComments.push(c.content);
-        if (c.attitude) allComments.push(`Thái độ: ${c.attitude}`);
+        if (c.attitude) allComments.push(\`Thái độ: \${c.attitude}\`);
       });
     });
 
@@ -132,64 +138,15 @@ export const getStudentReport = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: 'Failed to generate report' });
   }
-};
+};`;
 
-export const getReportHistory = async (req: Request, res: Response) => {
-  try {
-    const user = (req as any).user;
-    let history;
+const startIndex = content.indexOf('export const getStudentReport = async');
+const endIndex = content.indexOf('export const getReportHistory');
 
-    if (user.role === 'TUTOR') {
-      history = await prisma.reportHistory.findMany({
-        where: { created_by: user.id },
-        include: { student: true },
-        orderBy: { created_at: 'desc' }
-      });
-    } else {
-      history = await prisma.reportHistory.findMany({
-        where: { student: { parent_id: user.id } },
-        include: { student: true, creator: true },
-        orderBy: { created_at: 'desc' }
-      });
-    }
-
-    res.json(history);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch report history' });
-  }
-};
-
-export const saveReportHistory = async (req: Request, res: Response) => {
-  try {
-    const user = (req as any).user;
-    const { student_id, name, report_type, start_date, end_date } = req.body;
-
-    const report = await prisma.reportHistory.create({
-      data: {
-        student_id,
-        created_by: user.id,
-        report_type,
-        name,
-        start_date: start_date ? new Date(start_date) : null,
-        end_date: end_date ? new Date(end_date) : null
-      }
-    });
-
-    // Also log activity
-    await prisma.activityLog.create({
-      data: {
-        user_id: user.id,
-        student_id,
-        action: 'CREATED_REPORT',
-        target_type: 'REPORT',
-        target_id: report.id
-      }
-    });
-
-    res.status(201).json(report);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to save report' });
-  }
-};
+if (startIndex !== -1 && endIndex !== -1) {
+  content = content.substring(0, startIndex) + newFunc + '\n\n' + content.substring(endIndex);
+  fs.writeFileSync(file, content);
+  console.log('Fixed report controller');
+} else {
+  console.log('Markers not found');
+}

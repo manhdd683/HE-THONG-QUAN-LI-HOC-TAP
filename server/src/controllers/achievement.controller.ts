@@ -76,7 +76,7 @@ export const evaluateAchievements = async (req: Request, res: Response) => {
         where: {
           student_id: student.id,
           is_approved: true,
-          average_score: { gte: 5.0 } // Passed
+          average_score: { gte: 8.0 } // Excellent
         }
       });
 
