@@ -90,6 +90,11 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
   const handleApprove = async (boardId: string) => {
     try {
       setSaving(boardId);
+      // Save data first before approving
+      const dataToSave = editData[boardId];
+      await api.put(`/scoreboards/${boardId}`, dataToSave);
+      
+      // Then approve
       await api.post(`/scoreboards/${boardId}/approve`);
       showSuccess('Đã duyệt bảng điểm. Phụ huynh hiện có thể xem.');
       fetchBoards();
@@ -177,7 +182,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
                   {user?.role === 'TUTOR' && (
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button className="btn-secondary" onClick={() => handleSave(board.id)} disabled={saving === board.id} style={{ padding: '6px 12px', fontSize: '13px' }}>
-                        <Save size={14} /> Lưu nháp
+                        <Save size={14} /> Lưu điểm
                       </button>
                       {!board.is_approved && (
                         <button className="btn-primary" onClick={() => handleApprove(board.id)} disabled={saving === board.id} style={{ padding: '6px 12px', fontSize: '13px' }}>
