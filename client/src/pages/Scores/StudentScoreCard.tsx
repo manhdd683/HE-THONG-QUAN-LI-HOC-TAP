@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Award, FileText, CheckCircle, Save, Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

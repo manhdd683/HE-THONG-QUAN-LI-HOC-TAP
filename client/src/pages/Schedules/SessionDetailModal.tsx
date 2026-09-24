@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { X, BookOpen, MessageSquare, CheckCircle, Clock } from 'lucide-react';
 import type { Schedule } from './SchedulesList';

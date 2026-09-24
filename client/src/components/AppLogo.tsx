@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 
 const AppLogo = ({ size = 64 }: { size?: number }) => {

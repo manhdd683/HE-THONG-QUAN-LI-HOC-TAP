@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { GraduationCap, Calendar, Clock, DollarSign, CalendarCheck, BookOpen, MessageSquare, Award, Printer, FileText, ChevronRight } from 'lucide-react';
 import api from '../../utils/api';

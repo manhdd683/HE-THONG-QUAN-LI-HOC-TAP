@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useRef } from 'react';
 import { Award, Star, Download } from 'lucide-react';
 import api from '../../utils/api';

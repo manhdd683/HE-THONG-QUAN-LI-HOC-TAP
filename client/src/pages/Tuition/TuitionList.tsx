@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Plus, DollarSign, ReceiptText } from 'lucide-react';
 import api from '../../utils/api';

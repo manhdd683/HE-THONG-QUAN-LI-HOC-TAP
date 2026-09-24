@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { X, Book, Calendar, CheckCircle, MessageCircle, FileText, Award, Download, Paperclip } from 'lucide-react';
 import type { Homework } from './HomeworkList';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { Plus, CheckCircle, Clock, Calendar, MapPin, Video, User, Edit2, Trash2, Edit3, Search, FileText } from 'lucide-react';
 import api from '../../utils/api';

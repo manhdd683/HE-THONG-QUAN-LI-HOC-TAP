@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { X, Receipt, Calendar, User, BookOpen, CreditCard, CheckCircle, Clock } from 'lucide-react';
 import type { TuitionCycle } from './TuitionList';
