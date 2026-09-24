@@ -364,7 +364,9 @@ const ReportsPage: React.FC = () => {
                           <tr style={{ background: '#f8f9fa' }}>
                             <td style={{ fontWeight: 600 }}>Tổng điểm thường xuyên</td>
                             <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>15%</td>
-                            <td></td>
+                            <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>
+                              {board.daily_score !== null ? Number(board.daily_score).toFixed(1) : ""}
+                            </td>
                           </tr>
                           
                           {/* Bài về nhà */}
@@ -382,7 +384,11 @@ const ReportsPage: React.FC = () => {
                           <tr style={{ background: '#f8f9fa' }}>
                             <td style={{ fontWeight: 600 }}>Tổng điểm bài về nhà</td>
                             <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>20%</td>
-                            <td></td>
+                            <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>
+                              {(board.homework_1 !== null || board.homework_2 !== null) ? 
+                                (((Number(board.homework_1) || 0) + (Number(board.homework_2) || 0)) / ((board.homework_1 !== null ? 1 : 0) + (board.homework_2 !== null ? 1 : 0))).toFixed(1) 
+                                : ""}
+                            </td>
                           </tr>
 
                           {/* Kiểm tra nhỏ */}
@@ -400,7 +406,11 @@ const ReportsPage: React.FC = () => {
                           <tr style={{ background: '#f8f9fa' }}>
                             <td style={{ fontWeight: 600 }}>Tổng điểm kiểm tra nhỏ</td>
                             <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>20%</td>
-                            <td></td>
+                            <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>
+                              {(board.quiz_1 !== null || board.quiz_2 !== null) ? 
+                                (((Number(board.quiz_1) || 0) + (Number(board.quiz_2) || 0)) / ((board.quiz_1 !== null ? 1 : 0) + (board.quiz_2 !== null ? 1 : 0))).toFixed(1) 
+                                : ""}
+                            </td>
                           </tr>
 
                           {/* Kiểm tra cuối kỳ */}
@@ -413,7 +423,9 @@ const ReportsPage: React.FC = () => {
                           <tr style={{ background: '#f8f9fa' }}>
                             <td style={{ fontWeight: 600 }}>Tổng điểm kiểm tra cuối kỳ</td>
                             <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>45%</td>
-                            <td></td>
+                            <td style={{ textAlign: 'center', fontWeight: 600, color: 'var(--primary)' }}>
+                              {board.final_score !== null ? Number(board.final_score).toFixed(1) : ""}
+                            </td>
                           </tr>
 
                           {/* Tổng kết */}

@@ -83,7 +83,7 @@ const ParentAchievements: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
             {achievements.map((ach) => {
               let metrics = { attendanceRate: 0, homeworkRate: 0, avgScore: 0, startDate: '', endDate: '' };
-              try { metrics = JSON.parse(ach.metrics); } catch (e) {}
+              try { if (ach.metrics) metrics = { ...metrics, ...JSON.parse(ach.metrics) }; } catch (e) {}
               const startDateStr = metrics.startDate ? new Date(metrics.startDate).toLocaleDateString('vi-VN') : '...';
               const endDateStr = metrics.endDate ? new Date(metrics.endDate).toLocaleDateString('vi-VN') : new Date(ach.achieved_date).toLocaleDateString('vi-VN');
 
@@ -152,7 +152,7 @@ const ParentAchievements: React.FC = () => {
             {(() => {
               const ach = selectedAchievement;
               let metrics = { attendanceRate: 0, homeworkRate: 0, avgScore: 0, startDate: '', endDate: '' };
-              try { metrics = JSON.parse(ach.metrics); } catch (e) {}
+              try { if (ach.metrics) metrics = { ...metrics, ...JSON.parse(ach.metrics) }; } catch (e) {}
 
               const startDateStr = metrics.startDate ? new Date(metrics.startDate).toLocaleDateString('vi-VN') : '...';
               const endDateStr = metrics.endDate ? new Date(metrics.endDate).toLocaleDateString('vi-VN') : new Date(ach.achieved_date).toLocaleDateString('vi-VN');

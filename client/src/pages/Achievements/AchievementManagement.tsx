@@ -88,7 +88,7 @@ const AchievementManagement: React.FC = () => {
             ) : (
               achievements.map(ach => {
                 let metrics = { attendanceRate: 0, homeworkRate: 0, avgScore: 0 };
-                try { metrics = JSON.parse(ach.metrics); } catch (e) {}
+                try { if (ach.metrics) metrics = { ...metrics, ...JSON.parse(ach.metrics) }; } catch (e) {}
 
                 return (
                   <tr key={ach.id}>
