@@ -58,7 +58,10 @@ export const getStudentReport = async (req: Request, res: Response) => {
 
     // Get scoreboards instead of homework
     const scoreboards = await prisma.subjectScoreBoard.findMany({
-      where: { student_id: studentId }
+      where: { 
+        student_id: studentId,
+        is_approved: true
+      }
     });
 
     // We don't have homework rate anymore, we'll just base it on the scoreboards average

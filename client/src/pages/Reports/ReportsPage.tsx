@@ -492,12 +492,7 @@ const ReportsPage: React.FC = () => {
               )}
             </div>
 
-            <div className="pr-section">
-              <h3 className="pr-section-title">V. ĐÁNH GIÁ CHUNG</h3>
-              <div className="pr-remarks-box">
-                {reportData.aggregatedComment}
-              </div>
-            </div>
+
 
 
           </div>
