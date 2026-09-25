@@ -230,14 +230,22 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Không có quyền' });
     }
-    const { name, phone } = req.body;
+    const { name, phone, email } = req.body;
+
+    const dataToUpdate: any = { name, phone };
+    if (req.user.role === 'TUTOR' && email) {
+      if (email !== req.user.email) {
+        const existing = await prisma.user.findUnique({ where: { email } });
+        if (existing) {
+          return res.status(400).json({ message: 'Email này đã được sử dụng.' });
+        }
+      }
+      dataToUpdate.email = email;
+    }
 
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: {
-        name,
-        phone
-      }
+      data: dataToUpdate
     });
 
     res.json({
@@ -249,6 +257,34 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
         name: user.name,
       }
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+export const changePassword = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.user || req.user.role !== 'TUTOR') {
+       return res.status(403).json({ message: 'Không có quyền' });
+    }
+    const { currentPassword, newPassword } = req.body;
+    
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
+    
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Mật khẩu hiện tại không đúng' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword }
+    });
+    
+    res.json({ message: 'Đổi mật khẩu thành công' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Lỗi server' });

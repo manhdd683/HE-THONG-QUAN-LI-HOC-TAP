@@ -19,6 +19,12 @@ const SettingsPage: React.FC = () => {
   const [newEmail, setNewEmail] = useState('');
   const [emailStatus, setEmailStatus] = useState<string | null>(null);
 
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
@@ -31,7 +37,7 @@ const SettingsPage: React.FC = () => {
     e.preventDefault();
     try {
       if (activeTab === 'profile') {
-        const res = await api.put('/auth/profile', { name: formData.name, phone: formData.phone });
+        const res = await api.put('/auth/profile', { name: formData.name, email: formData.email, phone: formData.phone });
         updateUser(res.data.user);
         showSuccess('Đã cập nhật thông tin thành công!');
       } else {
@@ -39,6 +45,24 @@ const SettingsPage: React.FC = () => {
       }
     } catch (err: any) {
       showError(err.response?.data?.message || 'Lỗi khi cập nhật thông tin');
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showError('Mật khẩu xác nhận không khớp');
+      return;
+    }
+    try {
+      await api.put('/auth/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+      showSuccess('Đổi mật khẩu thành công!');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'Lỗi khi đổi mật khẩu');
     }
   };
 
@@ -121,8 +145,8 @@ const SettingsPage: React.FC = () => {
                 
                 <div className="form-group">
                   <label>Email</label>
-                  <input type="email" name="email" className="form-input" value={formData.email} disabled style={{ opacity: 0.7 }} />
-                  <small style={{ color: 'var(--text-muted)' }}>Email dùng để đăng nhập không thể thay đổi.</small>
+                  <input type="email" name="email" className="form-input" value={formData.email} onChange={handleChange} disabled={user?.role !== 'TUTOR'} style={{ opacity: user?.role !== 'TUTOR' ? 0.7 : 1 }} />
+                  {user?.role !== 'TUTOR' && <small style={{ color: 'var(--text-muted)' }}>Email dùng để đăng nhập không thể thay đổi trực tiếp.</small>}
                 </div>
 
                 <div className="form-group">
@@ -182,12 +206,35 @@ const SettingsPage: React.FC = () => {
             {activeTab === 'security' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <h2 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Bảo mật tài khoản</h2>
-                <button type="button" className="btn-secondary" style={{ width: 'fit-content' }}>
-                  Đổi mật khẩu
-                </button>
-                <button type="button" className="btn-secondary" style={{ width: 'fit-content', color: 'var(--error)', borderColor: 'var(--error)' }}>
-                  Đăng xuất khỏi tất cả thiết bị
-                </button>
+                
+                {user?.role === 'TUTOR' && (
+                  <div style={{ background: 'var(--glass-bg)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+                    <h3 style={{ fontSize: '1.1rem', marginBottom: '15px' }}>Đổi mật khẩu</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                      <div className="form-group">
+                        <label>Mật khẩu hiện tại</label>
+                        <input type="password" name="currentPassword" value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})} className="form-input" />
+                      </div>
+                      <div className="form-group">
+                        <label>Mật khẩu mới</label>
+                        <input type="password" name="newPassword" value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} className="form-input" />
+                      </div>
+                      <div className="form-group">
+                        <label>Xác nhận mật khẩu mới</label>
+                        <input type="password" name="confirmPassword" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} className="form-input" />
+                      </div>
+                      <button type="button" onClick={handlePasswordChange} className="btn-primary" style={{ width: 'fit-content', marginTop: '10px' }}>
+                        Lưu mật khẩu
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                <div style={{ marginTop: '10px' }}>
+                  <button type="button" className="btn-secondary" style={{ width: 'fit-content', color: 'var(--error)', borderColor: 'var(--error)' }}>
+                    Đăng xuất khỏi tất cả thiết bị
+                  </button>
+                </div>
               </div>
             )}
 

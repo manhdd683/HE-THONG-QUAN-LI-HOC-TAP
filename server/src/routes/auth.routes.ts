@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { login, forgotPassword, resetPassword, requestEmailChange, getPendingEmailRequests, approveEmailChange, rejectEmailChange, updateProfile } from '../controllers/auth.controller';
+import { login, forgotPassword, resetPassword, requestEmailChange, getPendingEmailRequests, approveEmailChange, rejectEmailChange, updateProfile, changePassword } from '../controllers/auth.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -9,6 +9,7 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 
 router.put('/profile', authenticateToken, updateProfile);
+router.put('/change-password', authenticateToken, changePassword);
 
 router.post('/request-email-change', authenticateToken, requestEmailChange);
 router.get('/pending-emails', authenticateToken, getPendingEmailRequests);
