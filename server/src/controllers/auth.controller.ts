@@ -273,7 +273,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) return res.status(404).json({ message: 'Không tìm thấy tài khoản' });
     
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isMatch) {
       return res.status(400).json({ message: 'Mật khẩu hiện tại không đúng' });
     }
@@ -281,7 +281,7 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword }
+      data: { password_hash: hashedPassword }
     });
     
     res.json({ message: 'Đổi mật khẩu thành công' });
