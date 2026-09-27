@@ -566,7 +566,7 @@ const SchedulesList: React.FC = () => {
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '3px' }}>
                                   {activeTab === 'COMPLETED' && schedule.session ? (
                                     <span className={`status-badge ${schedule.session.attendance === 'PRESENT' ? 'active' : schedule.session.attendance === 'ABSENT' ? 'inactive' : 'pending'}`} style={{ fontSize: '12px', fontWeight: 700 }}>
-                                      {schedule.session.attendance === 'PRESENT' ? 'Có mặt' : schedule.session.attendance === 'ABSENT' ? 'Vắng mặt' : 'Đi trễ'}
+                                      {schedule.session.attendance === 'PRESENT' ? 'Có mặt' : schedule.session.attendance === 'ABSENT' ? 'Vắng mặt' : schedule.session.attendance === 'EXCUSED' ? 'Có phép' : 'Học bù'}
                                     </span>
                                   ) : (
                                     <span className={`status-badge ${schedule.status === 'SCHEDULED' ? 'scheduled' : 'completed'}`} style={{ fontSize: '12px', fontWeight: 700 }}>
@@ -698,7 +698,7 @@ const SchedulesList: React.FC = () => {
                         </span>
                         {activeTab === 'COMPLETED' && schedule.session && (
                           <span className={`status-badge ${schedule.session.attendance === 'PRESENT' ? 'active' : schedule.session.attendance === 'ABSENT' ? 'inactive' : 'pending'}`} style={{ fontSize: '11px' }}>
-                            {schedule.session.attendance === 'PRESENT' ? 'Có mặt' : schedule.session.attendance === 'ABSENT' ? 'Vắng mặt' : 'Đi trễ'}
+                            {schedule.session.attendance === 'PRESENT' ? 'Có mặt' : schedule.session.attendance === 'ABSENT' ? 'Vắng mặt' : schedule.session.attendance === 'EXCUSED' ? 'Có phép' : 'Học bù'}
                           </span>
                         )}
                       </div>

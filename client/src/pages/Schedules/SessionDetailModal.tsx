@@ -35,7 +35,7 @@ const SessionDetailModal: React.FC<SessionDetailModalProps> = ({ schedule, onClo
             </div>
             <div style={{ marginTop: '0.75rem' }}>
               <span className={`status-badge ${session.attendance === 'PRESENT' ? 'active' : session.attendance === 'ABSENT' ? 'inactive' : 'pending'}`}>
-                {session.attendance === 'PRESENT' ? 'Có mặt' : session.attendance === 'ABSENT' ? 'Vắng mặt' : 'Đi trễ'}
+                {session.attendance === 'PRESENT' ? 'Có mặt' : session.attendance === 'ABSENT' ? 'Vắng mặt' : session.attendance === 'EXCUSED' ? 'Có phép' : 'Học bù'}
               </span>
             </div>
           </div>
