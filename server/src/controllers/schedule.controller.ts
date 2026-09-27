@@ -285,7 +285,7 @@ export const markAttendance = async (req: Request, res: Response) => {
       }
     });
 
-    if (attendance === 'PRESENT' && (!existingSession || existingSession.attendance !== 'PRESENT')) {
+    if (['PRESENT', 'MAKE_UP'].includes(attendance) && (!existingSession || !['PRESENT', 'MAKE_UP'].includes(existingSession.attendance))) {
       const potentialCycles = await prisma.tuitionCycle.findMany({
         where: { student_id: schedule.student_id, status: { in: ['UNPAID', 'PARTIAL'] } },
         orderBy: { start_date: 'asc' }
@@ -334,7 +334,7 @@ export const markAttendance = async (req: Request, res: Response) => {
           ...(priceToAdd > 0 && { total_amount: { increment: priceToAdd } })
         }
       });
-    } else if (attendance !== 'PRESENT' && existingSession?.attendance === 'PRESENT' && existingSession.tuition_cycle_id) {
+    } else if (!['PRESENT', 'MAKE_UP'].includes(attendance) && existingSession && ['PRESENT', 'MAKE_UP'].includes(existingSession.attendance) && existingSession.tuition_cycle_id) {
       const cycle = await prisma.tuitionCycle.findUnique({ where: { id: existingSession.tuition_cycle_id } });
       if (cycle) {
         let priceToDeduct = 0;
