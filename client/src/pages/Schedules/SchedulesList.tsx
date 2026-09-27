@@ -93,7 +93,7 @@ const SchedulesList: React.FC = () => {
       schedules: Schedule[];
       presentCount: number;
       absentCount: number;
-      lateCount: number;
+      makeupCount: number;
       subjects: string[];
     }>();
 
@@ -106,7 +106,7 @@ const SchedulesList: React.FC = () => {
           schedules: [],
           presentCount: 0,
           absentCount: 0,
-          lateCount: 0,
+          makeupCount: 0,
           subjects: [],
         });
       }
@@ -116,7 +116,7 @@ const SchedulesList: React.FC = () => {
       const att = schedule.session?.attendance;
       if (att === 'PRESENT') group.presentCount++;
       else if (att === 'ABSENT') group.absentCount++;
-      else if (att === 'LATE') group.lateCount++;
+      else if (att === 'MAKE_UP') group.makeupCount++;
 
       if (schedule.subject && !group.subjects.includes(schedule.subject)) {
         group.subjects.push(schedule.subject);
@@ -467,7 +467,7 @@ const SchedulesList: React.FC = () => {
                               {group.absentCount} Vắng mặt
                             </span>
                           )}
-                          {group.lateCount > 0 && (
+                          {group.makeupCount > 0 && (
                             <span 
                               style={{ 
                                 fontSize: '12px', 
@@ -478,7 +478,7 @@ const SchedulesList: React.FC = () => {
                                 color: '#d97706' 
                               }}
                             >
-                              {group.lateCount} Đi trễ
+                              {group.makeupCount} Học bù
                             </span>
                           )}
                         </div>
