@@ -1,6 +1,6 @@
-import { Router } from 'express';
+﻿import { Router } from 'express';
 import { getStudents, getStudentById, createStudent, updateStudent, getStudentScores, deleteStudent } from '../controllers/student.controller';
-import { getStudentScoreBoards } from '../controllers/scoreboard.controller';
+import { getStudentScoreBoards, createScoreBoard } from '../controllers/scoreboard.controller';
 import { authenticateToken } from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -16,6 +16,9 @@ router.get('/:id/scores', getStudentScores);
 
 // Get student scoreboards (new)
 router.get('/:id/scoreboards', getStudentScoreBoards);
+
+// Create student scoreboard (new)
+router.post('/:id/scoreboards', createScoreBoard);
 
 // Only TUTOR can create/update (controller handles role checks)
 router.post('/', createStudent);

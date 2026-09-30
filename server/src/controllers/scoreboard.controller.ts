@@ -1,4 +1,4 @@
-import { Response } from 'express';
+﻿import { Response } from 'express';
 import prisma from '../prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { sendScoreBoardNotification } from '../utils/mailer';
@@ -13,12 +13,13 @@ export const getStudentScoreBoards = async (req: AuthRequest, res: Response) => 
     });
     
     for (const sub of subjects) {
-      const existing = await prisma.subjectScoreBoard.findUnique({
+      const existing = await prisma.subjectScoreBoard.findFirst({
         where: {
-          student_id_subject: {
-            student_id: studentId,
-            subject: sub.subject
-          }
+          student_id: studentId,
+          subject: sub.subject
+        },
+        orderBy: {
+          created_at: 'desc'
         }
       });
       
@@ -26,17 +27,37 @@ export const getStudentScoreBoards = async (req: AuthRequest, res: Response) => 
         await prisma.subjectScoreBoard.create({
           data: {
             student_id: studentId,
-            subject: sub.subject
+            subject: sub.subject,
+            title: `Bảng điểm ${sub.subject}`
           }
         });
       }
     }
     
     const boards = await prisma.subjectScoreBoard.findMany({
-      where: { student_id: studentId }
+      where: { student_id: studentId },
+      orderBy: { created_at: 'desc' }
     });
     
     res.json(boards);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+export const createScoreBoard = async (req: AuthRequest, res: Response) => {
+  try {
+    const studentId = req.params.id as string;
+    const { subject, title } = req.body;
+    const board = await prisma.subjectScoreBoard.create({
+      data: {
+        student_id: studentId,
+        subject,
+        title: title || `Bảng điểm mới ${subject}`
+      }
+    });
+    res.json(board);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Lỗi server' });
@@ -47,6 +68,7 @@ export const updateScoreBoard = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
     const {
+      title,
       daily_score,
       homework_1,
       homework_2,
@@ -89,17 +111,21 @@ export const updateScoreBoard = async (req: AuthRequest, res: Response) => {
       average_score = parseFloat((totalScore / totalWeight).toFixed(2));
     }
     
+    const updateData: any = {
+      daily_score: daily_score === '' ? null : daily_score,
+      homework_1: homework_1 === '' ? null : homework_1,
+      homework_2: homework_2 === '' ? null : homework_2,
+      quiz_1: quiz_1 === '' ? null : quiz_1,
+      quiz_2: quiz_2 === '' ? null : quiz_2,
+      final_score: final_score === '' ? null : final_score,
+      average_score
+    };
+    
+    if (title !== undefined) updateData.title = title;
+    
     const board = await prisma.subjectScoreBoard.update({
       where: { id },
-      data: {
-        daily_score: daily_score === '' ? null : daily_score,
-        homework_1: homework_1 === '' ? null : homework_1,
-        homework_2: homework_2 === '' ? null : homework_2,
-        quiz_1: quiz_1 === '' ? null : quiz_1,
-        quiz_2: quiz_2 === '' ? null : quiz_2,
-        final_score: final_score === '' ? null : final_score,
-        average_score
-      }
+      data: updateData
     });
     
     res.json(board);

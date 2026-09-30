@@ -10,6 +10,7 @@ interface ScoreBoard {
   id: string;
   student_id: string;
   subject: string;
+  title: string;
   daily_score: number | null;
   homework_1: number | null;
   homework_2: number | null;
@@ -31,6 +32,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<string>('');
+  const [creatingBoard, setCreatingBoard] = useState(false);
 
   useEffect(() => {
     fetchBoards();
@@ -47,7 +49,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
       const sortedBoards = [...data].sort((a: any, b: any) => a.subject.localeCompare(b.subject));
       setBoards(sortedBoards);
       if (sortedBoards.length > 0) {
-        setActiveTab(sortedBoards[0].subject);
+        setActiveTab(sortedBoards[0].id);
       }
       
       const initEdit: any = {};
@@ -68,9 +70,28 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
       ...prev,
       [boardId]: {
         ...prev[boardId],
-        [field]: value === '' ? '' : Number(value)
+        [field]: field === 'title' ? value : (value === '' ? '' : Number(value))
       }
     }));
+  };
+
+  
+  const handleCreateBoard = async () => {
+    try {
+      const subject = prompt('Nhập tên môn học (ví dụ: Toán, Văn, Anh):');
+      if (!subject) return;
+      const title = prompt('Nhập tên chu kỳ/tháng (ví dụ: Bảng điểm Tháng 10):');
+      if (!title) return;
+      
+      setCreatingBoard(true);
+      await api.post(`/students/${student.id}/scoreboards`, { subject, title });
+      showSuccess('Đã tạo bảng điểm mới');
+      fetchBoards();
+    } catch (err) {
+      showError('Lỗi khi tạo bảng điểm');
+    } finally {
+      setCreatingBoard(false);
+    }
   };
 
   const handleSave = async (boardId: string) => {
@@ -145,30 +166,58 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', overflowX: 'auto' }}>
+          
+          <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', overflowX: 'auto', alignItems: 'center' }}>
             {boards.map(board => (
               <button
                 key={board.id}
-                className={`tab-btn ${activeTab === board.subject ? 'active' : ''}`}
-                onClick={() => setActiveTab(board.subject)}
+                className={`tab-btn ${activeTab === board.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(board.id)}
                 style={{ 
-                  background: 'none', border: 'none', borderBottom: activeTab === board.subject ? '2px solid var(--accent)' : '2px solid transparent',
-                  color: activeTab === board.subject ? 'var(--accent)' : 'var(--text-muted)', fontWeight: activeTab === board.subject ? 'bold' : 'normal',
+                  background: 'none', border: 'none', borderBottom: activeTab === board.id ? '2px solid var(--accent)' : '2px solid transparent',
+                  color: activeTab === board.id ? 'var(--accent)' : 'var(--text-muted)', fontWeight: activeTab === board.id ? 'bold' : 'normal',
                   padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '15px', whiteSpace: 'nowrap'
                 }}
               >
-                Môn: {board.subject}
+                {board.title || `Môn: ${board.subject}`}
               </button>
             ))}
+            {user?.role === 'TUTOR' && (
+              <button 
+                className="btn-secondary" 
+                onClick={handleCreateBoard} 
+                disabled={creatingBoard}
+                style={{ padding: '6px 12px', fontSize: '13px', marginLeft: 'auto', whiteSpace: 'nowrap' }}
+              >
+                + Tạo bảng điểm mới
+              </button>
+            )}
           </div>
 
-          {boards.filter(b => b.subject === activeTab).map(board => (
+
+          {boards.filter(b => b.id === activeTab).map(board => (
             <div key={board.id} style={{ border: '1px solid var(--border)', borderRadius: '12px', overflow: 'hidden' }}>
               <div style={{ padding: '16px 20px', background: 'var(--surface-solid)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)' }}>
-                  <Award size={20} />
-                  Môn học: {board.subject}
-                </h3>
+                
+                <div style={{ flex: 1 }}>
+                  {!board.is_approved && user?.role === 'TUTOR' ? (
+                    <input 
+                      type="text" 
+                      className="form-control"
+                      value={editData[board.id]?.title || board.title || ''}
+                      onChange={(e) => handleInputChange(board.id, 'title' as any, e.target.value)}
+                      style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)', padding: '4px 8px', width: '300px' }}
+                      placeholder="Tên bảng điểm..."
+                    />
+                  ) : (
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)' }}>
+                      <Award size={20} />
+                      {board.title || `Môn học: ${board.subject}`}
+                    </h3>
+                  )}
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>Môn học gốc: {board.subject}</div>
+                </div>
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                   {board.is_approved ? (
                     <span className="status-badge active" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>

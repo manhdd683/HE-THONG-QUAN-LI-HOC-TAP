@@ -159,7 +159,7 @@ model SubjectScoreBoard {
   student       Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
   
   subject       String
-  
+  title         String    @default("B?ng ?i?m")
   daily_score   Float?
   homework_1    Float?
   homework_2    Float?
@@ -173,7 +173,7 @@ model SubjectScoreBoard {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   
-  @@unique([student_id, subject])
+  // @@unique([student_id, subject])
 }
 
 model ScoreHistory {
