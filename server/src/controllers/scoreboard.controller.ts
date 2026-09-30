@@ -147,6 +147,15 @@ export const approveScoreBoard = async (req: AuthRequest, res: Response) => {
         }
       }
     });
+    
+    // Auto-create next cycle board
+    await prisma.subjectScoreBoard.create({
+      data: {
+        student_id: board.student_id,
+        subject: board.subject,
+        title: `Bảng điểm mới ${board.subject}`
+      }
+    });
 
     if (board.student.parent?.email) {
       sendScoreBoardNotification(board.student.parent.email, board.student.name, board.subject).catch(console.error);

@@ -1,4 +1,7 @@
-﻿import { useState, useEffect } from 'react';
+﻿const fs = require('fs');
+
+const content = `
+import { useState, useEffect } from 'react';
 import { Award, FileText, CheckCircle, Save, Check, History } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -40,7 +43,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
 
   const fetchBoards = async () => {
     try {
-      const res = await api.get(/students/ + student.id + /scoreboards);
+      const res = await api.get(\`/students/\${student.id}/scoreboards\`);
       const rawData = res.data.boards || res.data;
       let data = rawData as ScoreBoard[];
       if (user?.role === 'PARENT') {
@@ -94,7 +97,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
     try {
       setSaving(boardId);
       const dataToSave = editData[boardId];
-      await api.put(/scoreboards/ + boardId, dataToSave);
+      await api.put(\`/scoreboards/\${boardId}\`, dataToSave);
       showSuccess('Đã lưu điểm thành công');
       fetchBoards();
     } catch (error) {
@@ -109,8 +112,8 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
     try {
       setSaving(boardId);
       const dataToSave = editData[boardId];
-      await api.put(/scoreboards/ + boardId, dataToSave);
-      await api.post(/scoreboards/ + boardId + /approve);
+      await api.put(\`/scoreboards/\${boardId}\`, dataToSave);
+      await api.post(\`/scoreboards/\${boardId}/approve\`);
       showSuccess('Đã chốt bảng điểm và tạo chu kỳ mới!');
       fetchBoards();
     } catch (error) {
@@ -171,7 +174,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
             {subjects.map(sub => (
               <button
                 key={sub}
-                className={"tab-btn " + (activeSubject === sub ? 'active' : '')}
+                className={`tab-btn ${activeSubject === sub ? 'active' : ''}`}
                 onClick={() => setActiveSubject(sub)}
                 style={{ 
                   background: 'none', border: 'none', borderBottom: activeSubject === sub ? '2px solid var(--accent)' : '2px solid transparent',
@@ -197,7 +200,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
               >
                 {currentSubjectBoards.map((b, index) => (
                   <option key={b.id} value={b.id}>
-                    {b.title || Bảng điểm chưa đặt tên} {index === 0 && !b.is_approved ? '(Hiện tại)' : '(Lịch sử)'}
+                    {b.title || `Bảng điểm chưa đặt tên`} {index === 0 && !b.is_approved ? '(Hiện tại)' : '(Lịch sử)'}
                   </option>
                 ))}
               </select>
@@ -221,7 +224,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
                   ) : (
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)' }}>
                       <Award size={20} />
-                      {activeBoard.title || Bảng điểm Môn  + activeBoard.subject}
+                      {activeBoard.title || `Bảng điểm Môn ${activeBoard.subject}`}
                     </h3>
                   )}
                 </div>
@@ -354,3 +357,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
 };
 
 export default StudentScoreCard;
+`;
+
+fs.writeFileSync('client/src/pages/Scores/StudentScoreCard.tsx', Buffer.from(content, 'utf8'));
+console.log('UI written!');
