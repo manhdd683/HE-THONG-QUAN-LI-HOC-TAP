@@ -40,7 +40,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
 
   const fetchBoards = async () => {
     try {
-      const res = await api.get(/students/ + student.id + /scoreboards);
+      const res = await api.get(`/students/${student.id}/scoreboards`);
       const rawData = res.data.boards || res.data;
       let data = rawData as ScoreBoard[];
       if (user?.role === 'PARENT') {
@@ -94,7 +94,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
     try {
       setSaving(boardId);
       const dataToSave = editData[boardId];
-      await api.put(/scoreboards/ + boardId, dataToSave);
+      await api.put(`/scoreboards/${boardId}`, dataToSave);
       showSuccess('Đã lưu điểm thành công');
       fetchBoards();
     } catch (error) {
@@ -109,8 +109,8 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
     try {
       setSaving(boardId);
       const dataToSave = editData[boardId];
-      await api.put(/scoreboards/ + boardId, dataToSave);
-      await api.post(/scoreboards/ + boardId + /approve);
+      await api.put(`/scoreboards/${boardId}`, dataToSave);
+      await api.post(`/scoreboards/${boardId}/approve`);
       showSuccess('Đã chốt bảng điểm và tạo chu kỳ mới!');
       fetchBoards();
     } catch (error) {
@@ -197,7 +197,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
               >
                 {currentSubjectBoards.map((b, index) => (
                   <option key={b.id} value={b.id}>
-                    {b.title || Bảng điểm chưa đặt tên} {index === 0 && !b.is_approved ? '(Hiện tại)' : '(Lịch sử)'}
+                    {b.title || `Bảng điểm chưa đặt tên`} {index === 0 && !b.is_approved ? '(Hiện tại)' : '(Lịch sử)'}
                   </option>
                 ))}
               </select>
@@ -221,7 +221,7 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
                   ) : (
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)' }}>
                       <Award size={20} />
-                      {activeBoard.title || Bảng điểm Môn  + activeBoard.subject}
+                      {activeBoard.title || `Bảng điểm Môn ${activeBoard.subject}`}
                     </h3>
                   )}
                 </div>
