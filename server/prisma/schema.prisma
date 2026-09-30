@@ -159,7 +159,7 @@ model SubjectScoreBoard {
   student       Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
   
   subject       String
-  title         String    @default("B?ng ?i?m")
+  title         String    @default("Bảng điểm")
   daily_score   Float?
   homework_1    Float?
   homework_2    Float?

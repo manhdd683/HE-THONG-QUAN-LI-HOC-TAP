@@ -128,6 +128,18 @@ export const createTuitionCycle = async (req: Request, res: Response) => {
         where: { id: { in: session_ids } },
         data: { tuition_cycle_id: cycle.id }
       });
+      
+      // Auto-create Scoreboard if subject exists
+      if (subject && subject.trim() !== '') {
+        await prisma.subjectScoreBoard.create({
+          data: {
+            student_id,
+            subject,
+            title: name || `Bảng điểm ${subject}`
+          }
+        });
+      }
+      
       res.status(201).json(cycle);
     } else {
       const cycle = await prisma.tuitionCycle.create({
@@ -145,6 +157,18 @@ export const createTuitionCycle = async (req: Request, res: Response) => {
           student: true
         }
       });
+      
+      // Auto-create Scoreboard if subject exists
+      if (subject && subject.trim() !== '') {
+        await prisma.subjectScoreBoard.create({
+          data: {
+            student_id,
+            subject,
+            title: name || `Bảng điểm ${subject}`
+          }
+        });
+      }
+      
       res.status(201).json(cycle);
     }
   } catch (error) {
