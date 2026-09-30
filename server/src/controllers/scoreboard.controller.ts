@@ -13,22 +13,20 @@ export const getStudentScoreBoards = async (req: AuthRequest, res: Response) => 
     });
     
     for (const sub of subjects) {
-      const existing = await prisma.subjectScoreBoard.findFirst({
-        where: {
-          student_id: studentId,
-          subject: sub.subject
-        },
-        orderBy: {
-          created_at: 'desc'
-        }
-      });
-      
-      if (!existing) {
+      const existingUnapproved = await prisma.subjectScoreBoard.findFirst({
+          where: {
+            student_id: studentId,
+            subject: sub.subject,
+            is_approved: false
+          }
+        });
+        
+        if (!existingUnapproved) {
         await prisma.subjectScoreBoard.create({
           data: {
             student_id: studentId,
             subject: sub.subject,
-            title: `Bảng điểm ${sub.subject}`
+            title: `Bảng điểm mới ${sub.subject}`
           }
         });
       }
