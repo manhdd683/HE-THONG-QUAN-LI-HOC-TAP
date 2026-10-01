@@ -56,13 +56,26 @@ export const getStudentReport = async (req: Request, res: Response) => {
     const presentSessions = sessions.filter(s => s.attendance === 'PRESENT').length;
     const absentSessions = sessions.filter(s => s.attendance === 'ABSENT').length;
 
-    // Get scoreboards instead of homework
-    const scoreboards = await prisma.subjectScoreBoard.findMany({
+    // Get scoreboards for this cycle specifically (approved OR linked to this cycle)
+    let scoreboards = await prisma.subjectScoreBoard.findMany({
       where: { 
         student_id: studentId,
-        is_approved: true
+        OR: [
+          { cycle_id: cycle.id, is_approved: true },
+          { cycle_id: cycle.id, is_approved: false } // also include active board of this cycle
+        ]
       }
     });
+
+    // Fallback: if no scoreboards linked to this cycle, get all approved ones
+    if (scoreboards.length === 0) {
+      scoreboards = await prisma.subjectScoreBoard.findMany({
+        where: { 
+          student_id: studentId,
+          is_approved: true
+        }
+      });
+    }
 
     // We don't have homework rate anymore, we'll just base it on the scoreboards average
     const validBoards = scoreboards.filter(b => b.average_score !== null);

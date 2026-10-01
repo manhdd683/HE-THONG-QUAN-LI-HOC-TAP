@@ -129,15 +129,27 @@ export const createTuitionCycle = async (req: Request, res: Response) => {
         data: { tuition_cycle_id: cycle.id }
       });
       
-      // Auto-create Scoreboard if subject exists
+      // Auto-create Scoreboard if subject exists, or link existing active board to cycle
       if (subject && subject.trim() !== '') {
-        await prisma.subjectScoreBoard.create({
-          data: {
-            student_id,
-            subject,
-            title: name || `Bảng điểm ${subject}`
-          }
+        const existingActive = await prisma.subjectScoreBoard.findFirst({
+          where: { student_id, subject, is_approved: false }
         });
+        if (existingActive) {
+          // Link existing board to this new cycle
+          await prisma.subjectScoreBoard.update({
+            where: { id: existingActive.id },
+            data: { cycle_id: cycle.id }
+          });
+        } else {
+          await prisma.subjectScoreBoard.create({
+            data: {
+              student_id,
+              subject,
+              title: name || `Bảng điểm ${subject}`,
+              cycle_id: cycle.id
+            }
+          });
+        }
       }
       
       res.status(201).json(cycle);
@@ -158,15 +170,26 @@ export const createTuitionCycle = async (req: Request, res: Response) => {
         }
       });
       
-      // Auto-create Scoreboard if subject exists
+      // Auto-create Scoreboard if subject exists, or link existing active board to cycle
       if (subject && subject.trim() !== '') {
-        await prisma.subjectScoreBoard.create({
-          data: {
-            student_id,
-            subject,
-            title: name || `Bảng điểm ${subject}`
-          }
+        const existingActive2 = await prisma.subjectScoreBoard.findFirst({
+          where: { student_id, subject, is_approved: false }
         });
+        if (existingActive2) {
+          await prisma.subjectScoreBoard.update({
+            where: { id: existingActive2.id },
+            data: { cycle_id: cycle.id }
+          });
+        } else {
+          await prisma.subjectScoreBoard.create({
+            data: {
+              student_id,
+              subject,
+              title: name || `Bảng điểm ${subject}`,
+              cycle_id: cycle.id
+            }
+          });
+        }
       }
       
       res.status(201).json(cycle);

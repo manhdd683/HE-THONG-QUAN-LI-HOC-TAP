@@ -339,12 +339,29 @@ const ReportsPage: React.FC = () => {
             </div>
 
             <div className="pr-section">
-              <h3 className="pr-section-title">III. BẢNG ĐIỂM CHI TIẾT</h3>
+              <h3 className="pr-section-title">III. BẢNG ĐIỂM CHU KỲ
+                {reportData.scoreboards && reportData.scoreboards.length > 0 && (
+                  <span style={{ marginLeft: '12px', fontSize: '13px', fontWeight: 'normal', color: 'var(--text-muted)' }}>
+                    ({reportData.scoreboards.length} môn)
+                  </span>
+                )}
+              </h3>
               {reportData.scoreboards && reportData.scoreboards.length > 0 ? (
                 <div>
                   {reportData.scoreboards.map((board: any) => (
                     <div key={board.id} style={{ marginBottom: '20px' }}>
-                      <h4 style={{ color: 'var(--primary)', marginBottom: '8px' }}>Môn: {board.subject}</h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <h4 style={{ color: 'var(--primary)', margin: 0 }}>Môn: {board.subject}</h4>
+                        {board.is_approved ? (
+                          <span style={{ fontSize: '12px', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                            ✅ Đã chốt
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '12px', background: '#fef3c7', color: '#d97706', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                            ⏳ Đang học
+                          </span>
+                        )}
+                      </div>
                       <table className="pr-data-table">
                         <thead>
                           <tr>

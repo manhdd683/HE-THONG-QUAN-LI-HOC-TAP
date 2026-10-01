@@ -19,6 +19,15 @@ interface ScoreBoard {
   average_score: number | null;
   is_approved: boolean;
   created_at: string;
+  cycle_id: string | null;
+  cycle?: {
+    id: string;
+    name: string;
+    start_date: string;
+    end_date: string | null;
+    completed_sessions: number;
+    total_sessions: number;
+  } | null;
 }
 
 const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
@@ -191,15 +200,20 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
               <strong style={{ color: 'var(--text-main)' }}>Chọn xem bảng điểm:</strong>
               <select 
                 className="form-control" 
-                style={{ maxWidth: '300px', fontWeight: 'bold' }}
+                style={{ maxWidth: '320px', fontWeight: 'bold' }}
                 value={selectedBoardId}
                 onChange={e => setSelectedBoardId(e.target.value)}
               >
-                {currentSubjectBoards.map((b, index) => (
-                  <option key={b.id} value={b.id}>
-                    {b.title || `Bảng điểm chưa đặt tên`} {index === 0 && !b.is_approved ? '(Hiện tại)' : '(Lịch sử)'}
-                  </option>
-                ))}
+                {currentSubjectBoards.map((b, index) => {
+                  const isActive = !b.is_approved;
+                  const cycleLabel = b.cycle ? ` — ${b.cycle.name}` : '';
+                  const statusLabel = isActive ? '(Đang học)' : '(Lịch sử)';
+                  return (
+                    <option key={b.id} value={b.id}>
+                      {b.title || `Bảng điểm chưa đặt tên`}{cycleLabel} {statusLabel}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
@@ -223,6 +237,15 @@ const StudentScoreCard: React.FC<{ student: Student }> = ({ student }) => {
                       <Award size={20} />
                       {activeBoard.title || `Bảng điểm Môn ${activeBoard.subject}`}
                     </h3>
+                  )}
+                  {/* Cycle info badge */}
+                  {activeBoard.cycle && (
+                    <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                      <span>📋 Chu kỳ:</span>
+                      <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{activeBoard.cycle.name}</span>
+                      <span>·</span>
+                      <span>{activeBoard.cycle.completed_sessions}/{activeBoard.cycle.total_sessions} buổi</span>
+                    </div>
                   )}
                 </div>
                 

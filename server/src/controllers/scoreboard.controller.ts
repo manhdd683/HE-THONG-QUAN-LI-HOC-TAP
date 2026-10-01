@@ -1,4 +1,4 @@
-﻿import { Response } from 'express';
+import { Response } from 'express';
 import prisma from '../prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { sendScoreBoardNotification } from '../utils/mailer';
@@ -7,7 +7,7 @@ export const getStudentScoreBoards = async (req: AuthRequest, res: Response) => 
   try {
     const studentId = req.params.id as string;
     
-    // Auto-create scoreboards for existing subjects if they don't exist
+    // Auto-create scoreboards for existing subjects if they don't have an active (unapproved) board
     const subjects = await prisma.studentSubject.findMany({
       where: { student_id: studentId }
     });
@@ -34,6 +34,11 @@ export const getStudentScoreBoards = async (req: AuthRequest, res: Response) => 
     
     const boards = await prisma.subjectScoreBoard.findMany({
       where: { student_id: studentId },
+      include: {
+        cycle: {
+          select: { id: true, name: true, start_date: true, end_date: true, completed_sessions: true, total_sessions: true }
+        }
+      },
       orderBy: { created_at: 'desc' }
     });
     
@@ -47,12 +52,13 @@ export const getStudentScoreBoards = async (req: AuthRequest, res: Response) => 
 export const createScoreBoard = async (req: AuthRequest, res: Response) => {
   try {
     const studentId = req.params.id as string;
-    const { subject, title } = req.body;
+    const { subject, title, cycle_id } = req.body;
     const board = await prisma.subjectScoreBoard.create({
       data: {
         student_id: studentId,
         subject,
-        title: title || `Bảng điểm mới ${subject}`
+        title: title || `Bảng điểm mới ${subject}`,
+        cycle_id: cycle_id || null
       }
     });
     res.json(board);
@@ -136,6 +142,25 @@ export const updateScoreBoard = async (req: AuthRequest, res: Response) => {
 export const approveScoreBoard = async (req: AuthRequest, res: Response) => {
   try {
     const id = req.params.id as string;
+
+    // Get the board being approved (including student subjects)
+    const boardToApprove = await prisma.subjectScoreBoard.findUnique({
+      where: { id },
+      include: {
+        student: {
+          include: {
+            parent: true,
+            student_subjects: true
+          }
+        }
+      }
+    });
+
+    if (!boardToApprove) {
+      return res.status(404).json({ message: 'Không tìm thấy bảng điểm' });
+    }
+
+    // Mark as approved
     const board = await prisma.subjectScoreBoard.update({
       where: { id },
       data: { is_approved: true },
@@ -145,19 +170,69 @@ export const approveScoreBoard = async (req: AuthRequest, res: Response) => {
         }
       }
     });
-    
-    // Auto-create next cycle board
-    await prisma.subjectScoreBoard.create({
-      data: {
-        student_id: board.student_id,
-        subject: board.subject,
-        title: `Bảng điểm mới ${board.subject}`
-      }
+
+    // -------------------------------------------------------
+    // Auto-create NEW scoreboards for ALL subjects of this student
+    // that don't already have an active (unapproved) board.
+    // This handles multi-subject students properly.
+    // -------------------------------------------------------
+    const allSubjects = boardToApprove.student.student_subjects;
+
+    // Find the latest active tuition cycle for this student (to link the new board)
+    const latestCycle = await prisma.tuitionCycle.findFirst({
+      where: {
+        student_id: boardToApprove.student_id,
+        status: { in: ['UNPAID', 'PARTIAL', 'PAID'] }
+      },
+      orderBy: { created_at: 'desc' }
     });
 
+    for (const sub of allSubjects) {
+      const existingActive = await prisma.subjectScoreBoard.findFirst({
+        where: {
+          student_id: boardToApprove.student_id,
+          subject: sub.subject,
+          is_approved: false
+        }
+      });
+
+      if (!existingActive) {
+        await prisma.subjectScoreBoard.create({
+          data: {
+            student_id: boardToApprove.student_id,
+            subject: sub.subject,
+            title: `Bảng điểm mới ${sub.subject}`,
+            cycle_id: latestCycle?.id || null
+          }
+        });
+      }
+    }
+
+    // Send email notification to parent
     if (board.student.parent?.email) {
       sendScoreBoardNotification(board.student.parent.email, board.student.name, board.subject).catch(console.error);
     }
+
+    res.json(board);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
+/**
+ * Link a scoreboard to a specific tuition cycle.
+ * Called when a new cycle is created or manually linked.
+ */
+export const linkScoreBoardToCycle = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const { cycle_id } = req.body;
+
+    const board = await prisma.subjectScoreBoard.update({
+      where: { id },
+      data: { cycle_id: cycle_id || null }
+    });
 
     res.json(board);
   } catch (error) {

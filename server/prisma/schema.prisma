@@ -158,6 +158,10 @@ model SubjectScoreBoard {
   student_id    String
   student       Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
   
+  // Link to tuition cycle
+  cycle_id      String?
+  cycle         TuitionCycle? @relation(fields: [cycle_id], references: [id])
+
   subject       String
   title         String    @default("Bảng điểm")
   daily_score   Float?
@@ -270,6 +274,7 @@ model TuitionCycle {
   
   payments      Payment[]
   sessions      Session[]
+  score_boards  SubjectScoreBoard[]
 
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
