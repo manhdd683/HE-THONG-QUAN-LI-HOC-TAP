@@ -90,18 +90,14 @@ export const createTuitionCycle = async (req: Request, res: Response) => {
     }
 
     // Dynamic pricing if no subject is provided
-    let final_price = 0;
-    let total_amount = 0;
-    
-    if (subject && subject.trim() !== '') {
+          let final_price = parseFloat(price_per_session) || 0;
+      let total_amount = 0;
+      
       if (custom_total_amount !== undefined) {
         total_amount = parseFloat(custom_total_amount);
-        final_price = parseFloat(price_per_session) || 0;
-      } else {
-        final_price = parseFloat(price_per_session) || 0;
+      } else if (subject && subject.trim() !== '') {
         total_amount = parseInt(total_sessions) * final_price;
       }
-    }
 
     // Create Cycle and update Sessions in transaction if session_ids provided
     if (session_ids && Array.isArray(session_ids) && session_ids.length > 0) {
@@ -115,9 +111,10 @@ export const createTuitionCycle = async (req: Request, res: Response) => {
             total_sessions: parseInt(total_sessions),
             price_per_session: final_price,
             total_amount,
-            status: 'UNPAID'
-          },
-          include: { student: true }
+              status: 'UNPAID',
+              completed_sessions: session_ids ? session_ids.length : 0
+            },
+            include: { student: true }
         }),
         // Cannot pass cycle.id yet, so we have to do it in a weird way, or use nested create
         // Wait, nested create doesn't work easily to update existing relations that way.
