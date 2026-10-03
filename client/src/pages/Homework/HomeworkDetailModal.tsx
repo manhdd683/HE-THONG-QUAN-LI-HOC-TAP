@@ -27,7 +27,7 @@ const HomeworkDetailModal: React.FC<HomeworkDetailModalProps> = ({ homework, onC
                   {homework.subject || 'Chung'}
                 </span>
                 <span className={`status-badge status-${homework.status.toLowerCase()}`}>
-                  {homework.status === 'PENDING' ? 'Chờ nộp' : homework.status === 'SUBMITTED' ? 'Đã nộp' : homework.status === 'GRADED' ? 'Đã chấm' : homework.status}
+                  {homework.status === 'PENDING' ? 'Chưa làm' : 'Đã hoàn thành'}
                 </span>
               </div>
             </div>

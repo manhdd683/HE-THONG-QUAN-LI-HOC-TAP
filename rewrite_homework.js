@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react';
+﻿const fs = require('fs');
+
+const content = `import { useState, useEffect } from 'react';
 import { Plus, FileText, CheckCircle } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
@@ -47,7 +49,7 @@ const HomeworkList: React.FC = () => {
     // Optimistic update
     setHomeworks(prev => prev.map(hw => hw.id === id ? { ...hw, status: newStatus } : hw));
     try {
-      await api.patch(`/homework/${id}/status`, { status: newStatus });
+      await api.patch(\`/homework/\${id}/status\`, { status: newStatus });
       if (newStatus === 'COMPLETED') {
         showSuccess('Đã đánh dấu hoàn thành bài tập!');
       } else {
@@ -209,3 +211,7 @@ const HomeworkList: React.FC = () => {
 };
 
 export default HomeworkList;
+`;
+
+fs.writeFileSync('client/src/pages/Homework/HomeworkList.tsx', content);
+console.log('Re-wrote HomeworkList.tsx successfully');
