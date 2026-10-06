@@ -1,16 +1,9 @@
 ﻿const fs = require('fs');
 let content = fs.readFileSync('server/src/controllers/report.controller.ts', 'utf8');
 
-const oldFallback = `      if (scoreboards.length === 0) {
-        scoreboards = await prisma.subjectScoreBoard.findMany({
-          where: { 
-            student_id: studentId,
-            is_approved: true
-          }
-        });
-      }`;
+const oldRegex = /if\s*\(scoreboards\.length\s*===\s*0\)\s*\{\s*scoreboards\s*=\s*await\s*prisma\.subjectScoreBoard\.findMany\(\{\s*where:\s*\{\s*student_id:\s*studentId,\s*is_approved:\s*true\s*\}\s*\}\);\s*\}/g;
 
-const newFallback = `      if (scoreboards.length === 0) {
+const newFallback = `if (scoreboards.length === 0) {
         // Fetch latest approved scoreboard for each subject
         const allApproved = await prisma.subjectScoreBoard.findMany({
           where: { student_id: studentId, is_approved: true },
@@ -40,6 +33,10 @@ const newFallback = `      if (scoreboards.length === 0) {
         }
       }`;
 
-content = content.replace(oldFallback, newFallback);
-fs.writeFileSync('server/src/controllers/report.controller.ts', Buffer.from(content, 'utf8'));
-console.log('Fixed report scoreboard fallback logic');
+if (oldRegex.test(content)) {
+  content = content.replace(oldRegex, newFallback);
+  fs.writeFileSync('server/src/controllers/report.controller.ts', Buffer.from(content, 'utf8'));
+  console.log('Fixed report scoreboard fallback logic');
+} else {
+  console.log('REGEX DID NOT MATCH!');
+}

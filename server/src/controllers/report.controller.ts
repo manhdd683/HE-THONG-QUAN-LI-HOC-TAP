@@ -69,15 +69,45 @@ export const getStudentReport = async (req: Request, res: Response) => {
 
     // Fallback: if no scoreboards linked to this cycle, get all approved ones
     if (scoreboards.length === 0) {
-      scoreboards = await prisma.subjectScoreBoard.findMany({
-        where: { 
-          student_id: studentId,
-          is_approved: true
+        // Fetch all scoreboards for this student
+        const allBoards = await prisma.subjectScoreBoard.findMany({
+          where: { 
+            student_id: studentId,
+            ...(cycle.subject && cycle.subject.trim() !== '' ? { subject: cycle.subject } : {})
+          },
+          orderBy: { updated_at: 'desc' }
+        });
+        
+        const subjectMap = new Map();
+        
+        // Group by subject
+        for (const sb of allBoards) {
+          if (!subjectMap.has(sb.subject)) {
+            subjectMap.set(sb.subject, []);
+          }
+          subjectMap.get(sb.subject).push(sb);
         }
-      });
-    }
+        
+        scoreboards = [];
+        for (const [subj, boards] of subjectMap.entries()) {
+          const draftBoard = boards.find(b => b.is_approved === false);
+          const latestApprovedBoard = boards.find(b => b.is_approved === true);
+          
+          // Check if latestApprovedBoard belongs to this cycle (updated after cycle start)
+          const isApprovedBoardRecent = latestApprovedBoard && new Date(latestApprovedBoard.updated_at) >= new Date(cycle.start_date);
+          const hasDraftScores = draftBoard && (draftBoard.daily_score !== null || draftBoard.homework_1 !== null || draftBoard.homework_2 !== null || draftBoard.quiz_1 !== null || draftBoard.quiz_2 !== null || draftBoard.final_score !== null || draftBoard.average_score !== null);
+          
+          if (hasDraftScores) {
+            scoreboards.push(draftBoard);
+          } else if (isApprovedBoardRecent) {
+            scoreboards.push(latestApprovedBoard);
+          } else if (draftBoard) {
+            scoreboards.push(draftBoard);
+          }
+        }
+      }
 
-    // We don't have homework rate anymore, we'll just base it on the scoreboards average
+      // We don't have homework rate anymore, we'll just base it on the scoreboards average
     const validBoards = scoreboards.filter(b => b.average_score !== null);
     const averageScore = validBoards.length > 0 
       ? validBoards.reduce((sum, b) => sum + (b.average_score || 0), 0) / validBoards.length
@@ -105,7 +135,7 @@ export const getStudentReport = async (req: Request, res: Response) => {
       });
     });
 
-    let finalComment = allComments.join(' | ');
+    let finalComment = allComments.join('. ');
     if (!finalComment) {
       if (attendanceRate >= 80 && (averageScore || 0) >= 6.5) {
         finalComment = 'Học sinh tham gia học tập đầy đủ, thái độ tốt và có kết quả khả quan. Cần tiếp tục phát huy.';
