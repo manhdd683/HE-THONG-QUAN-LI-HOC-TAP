@@ -485,7 +485,7 @@ const ReportsPage: React.FC = () => {
                           <td>{new Date(session.schedule?.date || session.created_at).toLocaleDateString('vi-VN')}</td>
                           <td>
                             <span className={`pr-status ${session.attendance.toLowerCase()}`}>
-                              {session.attendance === 'PRESENT' ? 'Có mặt' : (session.attendance === 'ABSENT' ? 'Vắng mặt' : session.attendance)}
+                              {session.attendance === 'PRESENT' ? 'Có mặt' : session.attendance === 'ABSENT' ? 'Vắng mặt' : session.attendance === 'MAKE_UP' ? 'Học bù' : session.attendance === 'EXCUSED' ? 'Nghỉ phép' : session.attendance}
                             </span>
                           </td>
                           <td style={{ color: '#555' }}>
